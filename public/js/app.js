@@ -165,10 +165,16 @@ function applyMasterPrice(price, change24h, canvas){
   chartState.livePrice = p;
   if(Number.isFinite(change)) chartState.liveChange24h = change;
   const last = chartState.rows.at(-1);
+  let chartChanged = false;
   if(last){
-    last[2] = Math.max(Number(last[2] || p), p);
-    last[3] = Math.min(Number(last[3] || p), p);
-    last[4] = p;
+    const previous = Number(last[4] || 0);
+    const drift = previous ? Math.abs(p - previous) / previous : 0;
+    if(!previous || drift <= 0.015){
+      last[2] = Math.max(Number(last[2] || p), p);
+      last[3] = Math.min(Number(last[3] || p), p);
+      last[4] = p;
+      chartChanged = true;
+    }
   }
   const display = axisPrice(p);
   if($('#livePrice')) $('#livePrice').textContent = '$' + display;
@@ -176,9 +182,9 @@ function applyMasterPrice(price, change24h, canvas){
   const cleanChange = Number.isFinite(change) ? change : activeChartChange();
   updateLiveChange(cleanChange, p);
   updateTabTitle(p, cleanChange);
-  updateOhlcLabel();
+  if(chartChanged) updateOhlcLabel();
   syncCurrentWatchlistPrice(p, cleanChange);
-  if(canvas && chartState.rows.length) drawCandles(canvas);
+  if(canvas && chartState.rows.length && chartChanged) drawCandles(canvas);
 }
 function attachDrawing(canvas){ $('#drawingToolbar')?.addEventListener('click',e=>{const btn=e.target.closest('button'); if(!btn)return; $$('#drawingToolbar button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); chartState.currentTool=btn.dataset.tool; if(['levels','emoji','magnet','lock-draw','lock','eye'].includes(chartState.currentTool)) chartState.currentTool='cursor'; if(chartState.currentTool==='ruler') chartState.currentTool='measure'; if(chartState.currentTool==='zoomTool') chartState.currentTool='cursor'; if(chartState.currentTool==='erase'){chartState.drawings=[];chartState.currentTool='cursor';$$('#drawingToolbar button').forEach(b=>b.classList.remove('active'));$('#drawingToolbar [data-tool="cursor"]').classList.add('active');drawCandles(canvas);}}); canvas.addEventListener('wheel',e=>{ e.preventDefault(); const old=chartState.zoom; chartState.zoom=Math.max(.75,Math.min(8,chartState.zoom*(e.deltaY<0?1.16:.86))); if(chartState.zoom!==old) drawCandles(canvas);},{passive:false}); canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId); const p=normPoint(canvas,e); if(chartState.currentTool==='cursor'){chartState.dragging=true;chartState.dragStartX=e.clientX;chartState.dragStartOffset=chartState.offset;return;} if(chartState.currentTool==='brush')chartState.freehand=[p]; else if(chartState.currentTool==='text'){const text=prompt('Texto no grafico:','Nota'); if(text)chartState.drawings.push({type:'text',a:p,text});drawCandles(canvas);} else chartState.draft={type:chartState.currentTool,a:p,b:p};}); canvas.addEventListener('pointermove',e=>{chartState.crosshair=normPoint(canvas,e); if(chartState.dragging){const dx=e.clientX-chartState.dragStartX; const view=visibleRows(); const perCandle=(canvas.parentElement.getBoundingClientRect().width-chartState.pad.l-chartState.pad.r)/Math.max(view.rows.length,1); chartState.offset=chartState.dragStartOffset+dx/perCandle; drawCandles(canvas); return;} if(chartState.freehand){chartState.freehand.push(normPoint(canvas,e));drawCandles(canvas);} else if(chartState.draft){chartState.draft.b=normPoint(canvas,e);drawCandles(canvas);} else drawCandles(canvas);}); canvas.addEventListener('pointerleave',()=>{chartState.crosshair=null;drawCandles(canvas);}); canvas.addEventListener('pointerup',()=>{chartState.dragging=false; if(chartState.freehand){chartState.drawings.push({type:'brush',points:chartState.freehand});chartState.freehand=null;} if(chartState.draft){if(chartState.draft.type==='horizontal')chartState.draft.b={x:1,y:chartState.draft.a.y};chartState.drawings.push(chartState.draft);chartState.draft=null;}drawCandles(canvas);}); }
 async function initCandles(){ const canvas=$('#candleChart'); if(!canvas)return; attachDrawing(canvas);  $('#indicatorToggle')?.addEventListener('click',()=>{chartState.indicator=!chartState.indicator;$('#indicatorToggle').classList.toggle('active',chartState.indicator);drawCandles(canvas);}); setInterval(()=>{if($('#clockNow'))$('#clockNow').textContent=new Date().toLocaleTimeString()+' UTC-3'; if(chartState.rows.length) drawCandles(canvas);},1000);
