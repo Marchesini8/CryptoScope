@@ -6,6 +6,10 @@ function logFallback(label, error) {
   console.error(label + ':', error.message);
 }
 
+function preferBinance() {
+  return String(process.env.MARKET_DATA_PROVIDER || '').toLowerCase() === 'binance';
+}
+
 const chartDays = { '1m': 1, '5m': 1, '15m': 1, '1h': 7, '4h': 30, '1d': 365, '24h': 1, '7d': 90, '30d': 365, '90d': 90, '180d': 180, '1y': 365 };
 const ohlcDays = { '1m': 1, '5m': 1, '15m': 1, '1h': 7, '4h': 30, '1d': 365, '24h': 1, '7d': 90, '30d': 365, '90d': 90, '180d': 180, '1y': 365 };
 
@@ -149,6 +153,7 @@ function fallbackPrices(ids, currencies) {
 }
 
 exports.ranking = async (req, res) => {
+  if (preferBinance()) return res.json(await rankingWithBinance());
   try {
     const ranking = await coin.getRanking();
     if (!ranking || !Array.isArray(ranking.usd) || !ranking.usd.length) return res.json(await rankingWithBinance());
@@ -162,6 +167,10 @@ exports.ranking = async (req, res) => {
 exports.chart = async (req, res) => {
   const days = chartDays[req.query.period] || 1;
   const currency = req.query.currency || 'usd';
+  if (preferBinance() && currency === 'usd') {
+    const data = await binance.chart(req.params.id, days).catch(() => null);
+    if (data && Array.isArray(data.prices) && data.prices.length > 1) return res.json(data);
+  }
   try {
     const data = await coin.getChart(req.params.id, days, currency);
     if (!data || !Array.isArray(data.prices) || data.prices.length < 2) return res.json((currency === 'usd' && await binance.chart(req.params.id, days).catch(() => null)) || fallbackChart(req.params.id, days, currency));
@@ -185,6 +194,7 @@ exports.ohlc = async (req, res) => {
 exports.price = async (req, res) => {
   const ids = req.query.ids || 'bitcoin';
   const currencies = req.query.currencies || 'usd,brl';
+  if (preferBinance()) return res.json(await pricesWithBinance(ids, currencies));
   try {
     const data = await coin.simplePrice(ids, currencies, { live: req.query.live === '1' });
     const fallback = await pricesWithBinance(ids, currencies);

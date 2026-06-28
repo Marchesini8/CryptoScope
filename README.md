@@ -75,6 +75,7 @@ Configure no painel do Railway:
 - `COINGECKO_BASE_URL`: `https://api.coingecko.com/api/v3`
 - `COINGECKO_API_KEY`: opcional.
 - `BINANCE_BASE_URL`: `https://api.binance.com/api/v3`
+- `MARKET_DATA_PROVIDER`: `binance` para manter candles e precos na mesma fonte no Railway
 - `USD_BRL_FALLBACK`: `5.55`
 - `OPENAI_API_KEY`: opcional, apenas para chat/IA.
 - `DATABASE_URL` ou variaveis `PG*`: usar quando ativar PostgreSQL.
