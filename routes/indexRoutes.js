@@ -1,0 +1,15 @@
+const router = require('express').Router();
+const { asyncHandler } = require('../middlewares/errorMiddleware');
+const home = require('../controllers/homeController');
+const calc = require('../controllers/calculatorController');
+router.get('/', asyncHandler(home.home));
+router.get('/moeda/:id', asyncHandler(home.coinPage));
+router.get('/bitcoin', asyncHandler(home.aliasCoin('bitcoin')));
+router.get('/ethereum', asyncHandler(home.aliasCoin('ethereum')));
+router.get('/solana', asyncHandler(home.aliasCoin('solana')));
+router.get('/calculadora-preco-medio-bitcoin', calc.average);
+router.get('/calculadora-lucro-bitcoin', calc.profit);
+router.get('/conversor-bitcoin-real', calc.converter);
+router.get('/sitemap.xml', (req, res) => { res.type('xml').render('pages/sitemap', { appUrl: process.env.APP_URL || 'http://localhost:3000' }); });
+router.get('/robots.txt', (req, res) => res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: ' + (process.env.APP_URL || 'http://localhost:3000') + '/sitemap.xml'));
+module.exports = router;

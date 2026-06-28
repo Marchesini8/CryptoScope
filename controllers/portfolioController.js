@@ -1,0 +1,4 @@
+const Portfolio = require('../models/Portfolio');
+const coin = require('../services/coinGeckoService');
+exports.index = async (req, res) => { const txs = await Portfolio.list(req.user.id); const ids = [...new Set(txs.map(t => t.coin_id))].join(',') || 'bitcoin'; const prices = await coin.simplePrice(ids, 'usd,brl'); res.render('pages/portfolio', { title: 'Minha carteira - CryptoRadar', description: 'Acompanhe compras, preco medio e rentabilidade.', txs, prices }); };
+exports.add = async (req, res) => { await Portfolio.addTx(req.user.id, { coinId: req.body.coinId, coinName: req.body.coinName, symbol: req.body.symbol, amountInvested: Number(req.body.amountInvested), coinPrice: Number(req.body.coinPrice), quantity: Number(req.body.quantity), purchasedAt: req.body.purchasedAt || new Date() }); res.redirect('/carteira'); };

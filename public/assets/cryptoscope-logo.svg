@@ -1,0 +1,17 @@
+<svg width="620" height="128" viewBox="0 0 620 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
+  <title id="title">CryptoScope</title>
+  <g stroke="#0a0d14" stroke-width="2" stroke-linejoin="round">
+    <g fill="#fff">
+      <path d="M64 27a37 37 0 0 0-34 34" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M98 61a37 37 0 0 0-34-34" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M30 67a37 37 0 0 0 34 34" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M64 101a37 37 0 0 0 34-34" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <rect x="59" y="7" width="10" height="35" rx="5"/>
+      <rect x="59" y="86" width="10" height="35" rx="5"/>
+      <rect x="7" y="59" width="35" height="10" rx="5"/>
+      <rect x="86" y="59" width="35" height="10" rx="5"/>
+      <path d="M63 89c-18 0-29-11-29-25s11-25 29-25c13 0 22 6 27 17l-19 8c-2-5-5-8-10-8-7 0-11 4-11 9s5 9 12 9c5 0 8-2 10-7l19 8c-5 9-14 14-28 14Z"/>
+    </g>
+    <text x="144" y="84" fill="#fff" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="66" font-weight="900" letter-spacing="0">CryptoScope</text>
+  </g>
+</svg>

@@ -1,0 +1,4 @@
+function asyncHandler(fn) { return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next); }
+function notFound(req, res) { res.status(404).render('pages/error', { title: 'Pagina nao encontrada', description: 'Pagina nao encontrada no CryptoRadar.', message: 'Nao encontramos essa pagina.' }); }
+function errorHandler(err, req, res, next) { console.error(err); res.status(err.status || 500).render('pages/error', { title: 'Erro', description: 'Algo saiu do esperado no CryptoRadar.', message: err.publicMessage || 'Tivemos um problema temporario. Tente novamente em instantes.' }); }
+module.exports = { asyncHandler, notFound, errorHandler };

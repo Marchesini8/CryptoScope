@@ -1,0 +1,3 @@
+exports.average = (req, res) => res.render('pages/calculator-average', { title: 'Calculadora de preco medio Bitcoin', description: 'Calcule preco medio, quantidade total e lucro ou prejuizo.' });
+exports.profit = (req, res) => res.render('pages/calculator-profit', { title: 'Calculadora de lucro Bitcoin', description: 'Calcule lucro, prejuizo, percentual e valor final.' });
+exports.converter = (req, res) => res.render('pages/converter', { title: 'Conversor Bitcoin Real', description: 'Converta BTC, ETH, BRL e USD com preco atual.' });

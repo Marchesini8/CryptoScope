@@ -1,0 +1,36 @@
+<%- include('../partials/head') %><%- include('../partials/nav') %>
+<main class="market-page cmc-page">
+  <section class="mobile-market-head"><div><h1>Markets</h1></div><div class="mobile-head-actions"><span class="diamond">◆</span><span class="search-dot"></span><span class="profile-dot">M</span></div></section>
+  <% const totalMarketCap = ranking.usd.reduce((s,c)=>s+(c.market_cap||0),0); const totalVolume = ranking.usd.reduce((s,c)=>s+(c.total_volume||0),0); %>
+  <section class="market-tabs cmc-tabs">
+    <a class="active" href="/">Top</a><a href="/noticias">Trending</a><a href="/watchlist">Watchlist</a><a href="/chat">IA</a><a href="/conversor-bitcoin-real">Conversor</a><a href="/carteira">Portfolio</a>
+  </section>
+  <section class="ticker-cards cmc-metrics">
+    <article class="metric-card spark-card">
+      <header><span>Market Cap</span><i>›</i></header>
+      <b>$<%= fmt.compact(totalMarketCap) %> <em class="neg">▼ 0.32%</em></b>
+      <canvas class="mini-wave down" data-points='[12,12.4,12.1,12.8,13.2,12.9,12.2,11.7,11.9,11.3,10.8,11.1]'></canvas>
+    </article>
+    <article class="metric-card spark-card">
+      <header><span>Volume 24h</span><i>›</i></header>
+      <b>$<%= fmt.compact(totalVolume) %> <em class="neg">▼ 0.16%</em></b>
+      <canvas class="mini-wave down" data-points='[14,14.1,13.9,14.5,15.1,14.8,14.2,13.5,13.2,12.8,12.5,12.7]'></canvas>
+    </article>
+    <article class="metric-card fear-card">
+      <header><span>Fear & Greed</span><i>›</i></header>
+      <div class="fear-meter" style="--value:17"><span>17</span><small>Extreme fear</small></div>
+    </article>
+    <article class="metric-card season-card">
+      <header><span>Altcoin Season</span><i>›</i></header>
+      <div class="season-score"><b>49<small>/100</small></b><div><span>Bitcoin</span><span>Altcoin</span></div><div class="season-bar"><i style="width:49%"></i></div></div>
+    </article>
+    <article class="cmc-api-banner"><strong>CoinMarketCap API</strong><span>50% Off. <small>7 Days Only.</small></span><button>Join Now</button></article>
+  </section>
+  <section class="mobile-news-strip"><span>Bitcoin proxy stock trades below BTC reserve...</span></section>
+  <section class="topic-strip cmc-topics"><span>New</span><button>Top News</button><button>Add AI alert</button><button>Are altcoins outperforming Bitcoin?</button><button>What cryptos are showing bullish momentum?</button><button>Upcoming events may impact prices</button></section>
+  <section class="mobile-filter-row"><button><b>Rank</b> Top 100</button><button>Categories</button><button>24h %</button><button class="filter-icon">Filter</button></section>
+  <section class="toolbar market-toolbar cmc-toolbar"><div class="network-pills"><button>All Networks</button><button>BSC</button><button>Solana</button><button>Base</button><button>Ethereum</button></div><div class="market-tools"><label class="search-shell"><input id="coinSearch" placeholder="Search"><span id="refreshState">ao vivo</span></label><div class="market-menu-wrap"><button class="market-tool-btn" type="button" data-market-menu="filters"><span class="filter-mark"></span>Filters</button><div class="market-popover" data-market-popover="filters"><b>Filters</b><label><input type="checkbox" checked> Top 100</label><label><input type="checkbox"> Gainers</label><label><input type="checkbox"> High volume</label><label><input type="checkbox"> Stablecoins</label><button type="button">Apply filters</button></div></div><div class="market-menu-wrap"><button class="market-tool-btn" type="button" data-market-menu="columns"><span class="columns-mark"></span>Columns</button><div class="market-popover" data-market-popover="columns"><b>Columns</b><label><input type="checkbox" checked> Price</label><label><input type="checkbox" checked> 1h %</label><label><input type="checkbox" checked> 24h %</label><label><input type="checkbox" checked> Market Cap</label><label><input type="checkbox" checked> Volume</label></div></div></div></section>
+  <section class="table-wrap market-terminal cmc-table-wrap"><table class="market-table cmc-table" id="marketTable"><thead><tr><th></th><th>#</th><th>Name</th><th>Price</th><th>1h %</th><th>24h %</th><th>7d %</th><th>Market Cap</th><th>Volume(24h)</th><th>Circulating Supply</th><th>7d Price</th></tr></thead><tbody><% ranking.usd.forEach((c,i)=>{ const trend = (c.price_change_percentage_7d_in_currency || 0) >= 0 ? 'up' : 'down'; %><tr data-id="<%= c.id %>" data-search="<%= c.name.toLowerCase() %> <%= c.symbol.toLowerCase() %>"><td class="star">☆</td><td class="rank"><%= i+1 %></td><td><a class="coin-cell" href="/moeda/<%= c.id %>"><% const coinIcon = c.id === 'bitcoin' ? '/assets/btc.gif' : c.image; %><% if (coinIcon && coinIcon !== '/favicon.png') { %><img src="<%= coinIcon %>" alt=""><% } else { %><span class="coin-logo-badge" data-symbol="<%= c.symbol.toUpperCase() %>"><%= c.symbol.toUpperCase().slice(0,1) %></span><% } %><span><b data-symbol="<%= c.symbol.toUpperCase() %>"><%= c.name %></b><small data-mobile-cap="$<%= fmt.compact(c.market_cap) %>"><%= c.symbol.toUpperCase() %></small></span></a></td><td class="price" data-key="price" data-price="<%= c.current_price %>"><span class="usd-price"><%= fmt.money(c.current_price,'USD') %></span></td><td data-key="1h" class="<%= c.price_change_percentage_1h_in_currency >= 0 ? 'pos':'neg' %>"><%= fmt.percent(c.price_change_percentage_1h_in_currency) %></td><td data-key="24h" class="<%= c.price_change_percentage_24h_in_currency >= 0 ? 'pos':'neg' %>"><%= fmt.percent(c.price_change_percentage_24h_in_currency) %></td><td data-key="7d" class="<%= c.price_change_percentage_7d_in_currency >= 0 ? 'pos':'neg' %>"><%= fmt.percent(c.price_change_percentage_7d_in_currency) %></td><td data-key="cap">$<%= fmt.compact(c.market_cap) %></td><td data-key="volume">$<%= fmt.compact(c.total_volume) %></td><td data-key="supply"><%= fmt.compact(c.circulating_supply) %> <%= c.symbol.toUpperCase() %></td><td><canvas class="sparkline <%= trend %>" data-points='<%= JSON.stringify(c.sparkline_in_7d && c.sparkline_in_7d.price ? c.sparkline_in_7d.price : []) %>'></canvas></td></tr><% }) %></tbody></table></section>
+</main>
+<script>window.CRYPTO_HOME=true;</script>
+<%- include('../partials/footer') %>

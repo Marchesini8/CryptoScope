@@ -1,0 +1,94 @@
+.topbar {
+  height: 44px;
+  padding: 0 12px;
+  background: #0b111c;
+  border-bottom: 1px solid #293041;
+  gap: 14px;
+  overflow: hidden;
+}
+.topbar-left,
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+.topbar-left { flex: 1; }
+.brand { flex: 0 0 auto; height: 34px; gap: 0; }
+.brand img {
+  display: block;
+  width: 190px;
+  height: 34px;
+  object-fit: contain;
+  object-position: left center;
+}
+.brand span { display: none; }
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  min-width: 0;
+  overflow: auto;
+  scrollbar-width: none;
+}
+.main-nav::-webkit-scrollbar { display: none; }
+.main-nav a,
+.topbar-actions a,
+.topbar-actions button {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.topbar-actions { justify-content: flex-end; gap: 12px; }
+.topbar-actions form { display: flex; margin: 0; }
+.topbar-actions button {
+  height: 28px;
+  padding: 0 10px;
+  background: #1b2230;
+  border-color: #30384b;
+}
+.global-search { display: block; width: 210px; }
+.global-search input {
+  height: 30px;
+  border-radius: 6px;
+  background: #2a2d42;
+  border-color: #35394f;
+  color: #dbe6ff;
+  padding: 0 34px 0 12px;
+  font-size: 12px;
+}
+.global-search input::placeholder { color: #8d96aa; }
+.login-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 14px;
+  background: #3867ff;
+  border-radius: 6px;
+  font-size: 12px;
+}
+@media (max-width: 980px) {
+  .topbar { height: auto; align-items: flex-start; flex-direction: column; padding: 8px 10px; overflow: visible; }
+  .topbar-left,
+  .topbar-actions { width: 100%; gap: 10px; }
+  .main-nav,
+  .topbar-actions { overflow: auto; }
+  .brand img { width: 174px; }
+  .global-search { min-width: 170px; width: 34vw; }
+}
+@media (max-width: 560px) {
+  .topbar-left { flex-direction: column; align-items: flex-start; }
+  .main-nav { width: 100%; gap: 16px; }
+  .topbar-actions { gap: 10px; }
+  .brand img { width: 164px; }
+  .global-search { width: 180px; min-width: 180px; }
+}
+
+
+/* CMC-like desktop header polish */
+@media (min-width: 721px){
+  .topbar{height:58px;background:#0b111d;border-bottom:1px solid #283044;padding:0 12px;gap:18px;overflow:visible}
+  .topbar-left{gap:22px}.brand{height:36px}.brand img{width:174px;height:34px}.main-nav{gap:28px}.main-nav a,.topbar-actions a,.topbar-actions button{font-size:13px;font-weight:750;color:#fff}.topbar-actions{gap:12px}.topbar-actions a[href="/carteira"]:before{content:"◔";margin-right:5px;color:#8791aa}.topbar-actions a[href="/watchlist"]:before{content:"★";margin-right:5px;color:#8791aa}
+  .global-search{position:relative;width:228px}.global-search:before{content:"";position:absolute;left:12px;top:50%;width:13px;height:13px;border:2px solid #7f879c;border-radius:50%;transform:translateY(-50%);z-index:1}.global-search:after{content:"";position:absolute;left:24px;top:19px;width:8px;height:2px;background:#7f879c;transform:rotate(45deg);border-radius:3px;z-index:1}.global-search input{height:31px;border-radius:7px;background:#2a2d42;border:1px solid #393d52;color:#dfe5f5;padding:0 34px 0 36px;font-size:12px}.global-search input::placeholder{color:#8e96aa}.login-pill{height:32px;display:inline-flex;align-items:center;border-radius:7px;background:#3867ff;padding:0 16px;font-size:12px;font-weight:800;color:#fff;box-shadow:0 6px 16px rgba(56,103,255,.25)}
+}
