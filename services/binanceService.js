@@ -200,7 +200,8 @@ async function rankingFromRows(rows) {
 }
 
 function intervalFor(days) {
-  const d = Number(days) || 1;
+  const d = Number(days);
+  if (!Number.isFinite(d) || d <= 0) return null;
   if (d <= 1) return '1m';
   if (d <= 7) return '15m';
   if (d <= 30) return '1h';
@@ -210,8 +211,11 @@ function intervalFor(days) {
 async function chart(id, days = 1) {
   const symbol = symbolFor(id);
   if (!symbol) return null;
+  const numericDays = Number(days);
+  if (!Number.isFinite(numericDays) || numericDays <= 0) return null;
   const interval = intervalFor(days);
-  const limit = Math.min(1000, Math.max(120, Number(days) <= 1 ? 720 : Number(days) * 24));
+  if (!interval) return null;
+  const limit = Math.min(1000, Math.max(120, numericDays <= 1 ? 720 : numericDays * 24));
   return cache.remember('binance:chart:' + symbol + ':' + interval + ':' + limit, 10000, async () => {
     const { data } = await api.get('/klines', { params: { symbol, interval, limit } });
     if (!Array.isArray(data) || data.length < 2) return null;

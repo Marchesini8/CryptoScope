@@ -1,4 +1,4 @@
-<% title = coin.symbol.toUpperCase() + 'USD ' + Number(coin.market_data.current_price.usd).toLocaleString('en-US', { maximumFractionDigits: 8 }) + ' ' + (coin.market_data.price_change_percentage_24h >= 0 ? '+ ' : '') + Number(coin.market_data.price_change_percentage_24h || 0).toFixed(2) + '%'; %>
+<% title = coin.symbol.toUpperCase() + 'USD ' + Number(coin.market_data.current_price.usd).toLocaleString('pt-BR', { maximumFractionDigits: Number(coin.market_data.current_price.usd) >= 1000 ? 0 : 4 }) + ' ' + (coin.market_data.price_change_percentage_24h >= 0 ? '▲ +' : '▼ -') + Math.abs(Number(coin.market_data.price_change_percentage_24h || 0)).toFixed(2) + '%'; %>
 <%- include('../partials/head') %><%- include('../partials/nav') %>
 <% const coinImage = coin.id === 'bitcoin' ? '/assets/btc.gif' : coin.image.small; %>
 <% const selectedPrice = Number(coin.market_data.current_price.usd || 0); %>
@@ -26,7 +26,7 @@
             <section><header>SEGUNDOS</header><button data-period="1s">1 segundo</button><button data-period="5s">5 segundos</button><button data-period="10s">10 segundos</button><button data-period="15s">15 segundos</button><button data-period="30s">30 segundos</button><button data-period="45s">45 segundos</button></section>
             <section><header>MINUTOS</header><button data-period="1m">1 minuto</button><button data-period="2m">2 minutos</button><button data-period="3m">3 minutos</button><button class="active" data-period="5m">5 minutos</button><button data-period="10m">10 minutos</button><button data-period="15m">15 minutos</button><button data-period="30m">30 minutos</button><button data-period="45m">45 minutos</button></section>
             <section><header>HORAS</header><button data-period="1h">1 hora</button><button data-period="2h">2 horas</button><button data-period="3h">3 horas</button><button data-period="4h">4 horas</button><button data-period="6h">6 horas</button><button data-period="8h">8 horas</button><button data-period="12h">12 horas</button></section>
-            <section><header>DIAS</header><button data-period="1d">1 dia</button><button data-period="3d">3 dias</button><button data-period="7d">1 semana</button><button data-period="30d">1 mes</button><button data-period="1y">1 ano</button></section>
+            <section><header>DIAS</header><button data-period="1d">1 dia</button><button data-period="3d">3 dias</button><button data-period="7d">1 semana</button><button data-period="30d">1 mes</button><button data-period="1y">1 ano</button><button data-period="all">Todos</button></section>
           </div>
         </div>
         <div class="chart-actions">
@@ -41,10 +41,12 @@
       <div class="chart-body">
         <aside class="drawing-toolbar" id="drawingToolbar">
           <button class="active" data-tool="cursor" title="Cursor"><span class="tool-icon crosshair-icon"></span></button>
+          <span class="tool-separator"></span>
           <button data-tool="trend" title="Linha de tendencia"><span class="tool-icon trend-icon"></span></button>
           <button data-tool="horizontal" title="Linha horizontal"><span class="tool-icon horizontal-icon"></span></button>
           <button data-tool="measure" title="Medir"><span class="tool-icon measure-icon"></span></button>
           <button data-tool="levels" title="Niveis"><span class="tool-icon levels-icon"></span></button>
+          <span class="tool-separator"></span>
           <button data-tool="brush" title="Desenho livre"><span class="tool-icon brush-icon"></span></button>
           <button data-tool="text" title="Texto"><span class="tool-icon text-icon"></span></button>
           <button data-tool="emoji" title="Emoji"><span class="tool-icon emoji-icon"></span></button>

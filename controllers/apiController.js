@@ -12,8 +12,8 @@ function preferBinance() {
   return String(process.env.MARKET_DATA_PROVIDER || '').toLowerCase() === 'binance';
 }
 
-const chartDays = { '1m': 1, '5m': 1, '15m': 1, '1h': 7, '4h': 30, '1d': 365, '24h': 1, '7d': 90, '30d': 365, '90d': 90, '180d': 180, '1y': 365 };
-const ohlcDays = { '1m': 1, '5m': 1, '15m': 1, '1h': 7, '4h': 30, '1d': 365, '24h': 1, '7d': 90, '30d': 365, '90d': 90, '180d': 180, '1y': 365 };
+const chartDays = { '1m': 1, '5m': 1, '15m': 1, '1h': 7, '4h': 30, '1d': 365, '24h': 1, '7d': 90, '30d': 365, '90d': 90, '180d': 180, '1y': 365, all: 'max' };
+const ohlcDays = { '1m': 1, '5m': 1, '15m': 1, '1h': 7, '4h': 30, '1d': 365, '24h': 1, '7d': 90, '30d': 365, '90d': 90, '180d': 180, '1y': 365, all: 365 };
 
 const fallbackRows = [
   ['bitcoin', 'Bitcoin', 'btc', 60400, 335000, 1.2, 0.4, -2.1, 1200000000000, 28000000000, 19800000],
@@ -113,7 +113,7 @@ function fallbackMarket(id, currency = 'usd') {
 }
 
 function fallbackChart(id, days = 1, currency = 'usd') {
-  const safeDays = Math.max(1, Number(days) || 1);
+  const safeDays = days === 'max' ? 365 : Math.max(1, Number(days) || 1);
   const now = Date.now();
   const points = safeDays <= 1 ? 288 : Math.min(720, Math.max(180, safeDays * 24));
   const step = Math.max(60000, Math.floor((safeDays * 86400000) / points));
@@ -169,7 +169,8 @@ exports.ranking = async (req, res) => {
 exports.chart = async (req, res) => {
   const days = chartDays[req.query.period] || 1;
   const currency = req.query.currency || 'usd';
-  if (currency === 'usd') {
+  const canUseBinance = currency === 'usd' && days !== 'max';
+  if (canUseBinance) {
     const data = await binance.chart(req.params.id, days).catch(() => null);
     if (data && Array.isArray(data.prices) && data.prices.length > 1) return res.json(data);
   }
@@ -181,11 +182,11 @@ exports.chart = async (req, res) => {
     } catch (ohlcError) {
       logFallback('Chart OHLC fallback', ohlcError);
     }
-    if (!data || !Array.isArray(data.prices) || data.prices.length < 2) return res.json((currency === 'usd' && await binance.chart(req.params.id, days).catch(() => null)) || fallbackChart(req.params.id, days, currency));
+    if (!data || !Array.isArray(data.prices) || data.prices.length < 2) return res.json((canUseBinance && await binance.chart(req.params.id, days).catch(() => null)) || fallbackChart(req.params.id, days, currency));
     res.json(data);
   } catch (error) {
     logFallback('Chart API fallback', error);
-    res.json((currency === 'usd' && await binance.chart(req.params.id, days).catch(() => null)) || fallbackChart(req.params.id, days, currency));
+    res.json((canUseBinance && await binance.chart(req.params.id, days).catch(() => null)) || fallbackChart(req.params.id, days, currency));
   }
 };
 
