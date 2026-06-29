@@ -21,6 +21,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { attachUser } = require('./middlewares/authMiddleware');
 const { notFound, errorHandler } = require('./middlewares/errorMiddleware');
+const initPostgres = require('./database/initPostgres');
 const app = express();
 const PORT = process.env.PORT || 3000;
 app.set('view engine', 'ejs');
@@ -32,6 +33,10 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(attachUser);
+app.use((req, res, next) => {
+  res.locals.googleClientId = process.env.GOOGLE_CLIENT_ID || '1017587020137-jh25acjsgc7cffgf4c34uod6gl91gnf4.apps.googleusercontent.com';
+  next();
+});
 app.get('/health', (req, res) => res.status(200).json({ ok: true, service: 'cryptoscope' }));
 app.use('/', require('./routes/indexRoutes'));
 app.use('/auth', require('./routes/authRoutes'));
@@ -43,4 +48,19 @@ app.use('/chat', require('./routes/chatRoutes'));
 app.use('/noticias', require('./routes/newsRoutes'));
 app.use(notFound);
 app.use(errorHandler);
-app.listen(PORT, () => console.log('CryptoRadar rodando em http://localhost:' + PORT));
+const server = app.listen(PORT, async () => {
+  try {
+    await initPostgres();
+    console.log('Postgres pronto para login Google.');
+  } catch (error) {
+    console.error('Nao foi possivel preparar o Postgres:', error.message);
+  }
+  console.log('CryptoScope rodando em http://localhost:' + PORT);
+});
+server.on('error', (error) => {
+  if (error && error.code === 'EADDRINUSE') {
+    console.error('A porta ' + PORT + ' ja esta em uso. Feche o outro servidor ou abra em outra porta com PORT=3001 node server.js.');
+    process.exit(1);
+  }
+  throw error;
+});

@@ -1,1 +1,14 @@
-<%- include('../partials/head') %><%- include('../partials/nav') %><main class="auth"><form class="panel narrow" method="post" action="/auth/<%= mode === 'register' ? 'cadastro' : 'login' %>"><h1><%= mode === 'register' ? 'Criar conta' : 'Entrar' %></h1><% errors.forEach(e=>{ %><p class="error"><%= e.msg %></p><% }) %><% if (mode === 'register') { %><label>Nome<input name="name" required></label><% } %><label>E-mail<input name="email" type="email" required></label><label>Senha<input name="password" type="password" required></label><button class="primary">Continuar</button><a href="/auth/<%= mode === 'register' ? 'login' : 'cadastro' %>"><%= mode === 'register' ? 'Ja tenho conta' : 'Criar cadastro' %></a></form></main><%- include('../partials/footer') %>
+<%- include('../partials/head') %><%- include('../partials/nav') %>
+<main class="auth">
+  <section class="panel narrow google-login-page" data-google-client-id="<%= googleClientId %>">
+    <h1>Entrar no CryptoScope</h1>
+    <% errors.forEach(e=>{ %><p class="error"><%= e.msg %></p><% }) %>
+    <p class="muted">Use sua conta Google para acessar sua carteira, alertas e watchlist.</p>
+    <button class="google-login-button" type="button" data-google-login>
+      <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.78-.07-1.53-.2-2.23H12v4.22h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.52z"/><path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.63-2.43l-3.24-2.51c-.9.6-2.04.96-3.39.96-2.6 0-4.8-1.76-5.59-4.12H3.06v2.59A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.41 13.9a6.01 6.01 0 0 1 0-3.8V7.51H3.06a10 10 0 0 0 0 8.98l3.35-2.59z"/><path fill="#EA4335" d="M12 5.98c1.47 0 2.8.51 3.84 1.5l2.87-2.87A9.62 9.62 0 0 0 12 2a10 10 0 0 0-8.94 5.51l3.35 2.59C7.2 7.74 9.4 5.98 12 5.98z"/></svg>
+      Continuar com Google
+    </button>
+    <p class="google-error" data-google-error></p>
+  </section>
+</main>
+<%- include('../partials/footer') %>

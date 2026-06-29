@@ -5,5 +5,6 @@ router.get('/login', auth.showLogin);
 router.get('/cadastro', auth.showRegister);
 router.post('/cadastro', auth.registerRules, asyncHandler(auth.register));
 router.post('/login', auth.loginRules, asyncHandler(auth.login));
+router.post('/google', asyncHandler(auth.google));
 router.post('/logout', auth.logout);
 module.exports = router;

@@ -34,55 +34,32 @@
   .auth-modal-root{position:fixed!important;inset:0!important;z-index:10000!important;display:grid!important;place-items:center!important;padding:18px!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;background:transparent!important;transition:opacity .18s ease,visibility .18s ease!important}
   .auth-modal-root.open{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
   .auth-backdrop{position:absolute!important;inset:0!important;background:rgba(5,8,15,.74)!important;backdrop-filter:blur(2px)!important}
-  .auth-dialog{position:relative!important;width:min(430px,calc(100vw - 28px))!important;max-height:92vh!important;overflow:auto!important;background:#20232e!important;border:1px solid #30374a!important;border-radius:8px!important;box-shadow:0 24px 80px rgba(0,0,0,.58)!important;padding:20px 22px 24px!important;color:#f4f7ff!important;transform:translateY(16px) scale(.97)!important;opacity:.4!important;transition:transform .24s cubic-bezier(.2,.8,.2,1),opacity .2s ease!important}
+  .auth-dialog{position:relative!important;width:min(420px,calc(100vw - 28px))!important;background:#20232e!important;border:1px solid #30374a!important;border-radius:8px!important;box-shadow:0 24px 80px rgba(0,0,0,.58)!important;padding:24px!important;color:#f4f7ff!important;transform:translateY(16px) scale(.97)!important;opacity:.4!important;transition:transform .24s cubic-bezier(.2,.8,.2,1),opacity .2s ease!important}
   .auth-modal-root.open .auth-dialog{transform:translateY(0) scale(1)!important;opacity:1!important}
   .auth-close{position:absolute!important;right:14px!important;top:12px!important;width:28px!important;height:28px!important;padding:0!important;border:0!important;background:transparent!important;color:#aeb7c8!important;font-size:20px!important}
-  .auth-tabs{display:flex!important;justify-content:center!important;gap:34px!important;margin:0 0 26px!important}.auth-tabs button{position:relative!important;border:0!important;background:transparent!important;padding:0 0 10px!important;color:#9ca6bc!important;font-size:21px!important;font-weight:700!important}.auth-tabs button.active{color:#fff!important}.auth-tabs button.active:after{content:"";position:absolute;left:50%;bottom:0;width:26px;height:5px;border-radius:99px;background:#5b7cff;transform:translateX(-50%)}
-  .auth-form{display:grid!important;gap:17px!important}.auth-form label{position:relative!important;display:grid!important;gap:8px!important;color:#fff!important;font-size:12px!important;font-weight:700!important}.auth-form label>a{position:absolute!important;right:0!important;top:0!important;color:#9ca6bc!important}.auth-form input[type="email"],.auth-form input[type="password"]{height:51px!important;background:#151823!important;border:1px solid #495165!important;border-radius:7px!important;color:#eef3ff!important;padding:0 15px!important;font-size:14px!important;font-weight:400!important}.auth-form input:focus{border-color:#5575ff!important;box-shadow:0 0 0 3px rgba(69,102,255,.26)!important;outline:none!important}.auth-form label>span{position:relative!important}.auth-form i{position:absolute!important;right:15px!important;top:50%!important;transform:translateY(-50%)!important;color:#8994a8!important;font-style:normal!important;font-size:11px!important}
-  .auth-submit{height:37px!important;margin-top:12px!important;border:0!important;border-radius:7px!important;background:#3550b0!important;color:#dce4f2!important;font-weight:800!important}.auth-separator{display:grid!important;grid-template-columns:1fr auto 1fr!important;align-items:center!important;gap:14px!important;margin:25px 0 18px!important;color:#fff!important;font-weight:800!important}.auth-separator:before,.auth-separator:after,.auth-email-title span{content:"";display:block;height:1px;background:#343a4b}
-  .auth-social{display:grid!important;gap:14px!important}.auth-social button{height:43px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;border:1px solid #596174!important;border-radius:7px!important;background:#20232e!important;color:#fff!important;font-weight:800!important}.auth-signup-first,.auth-signup-form{display:none!important}.auth-modal-root.signup-mode .auth-login-form,.auth-modal-root.signup-mode .auth-login-social,.auth-modal-root.signup-mode .auth-separator{display:none!important}.auth-modal-root.signup-mode .auth-signup-first,.auth-modal-root.signup-mode .auth-signup-form{display:grid!important}.auth-email-title{display:grid!important;grid-template-columns:1fr auto 1fr!important;align-items:center!important;gap:14px!important;margin:12px 0 5px!important;color:#fff!important;font-weight:900!important}.auth-check{grid-template-columns:auto 1fr!important;align-items:start!important}.auth-terms{text-align:center!important;color:#c4cbda!important;font-size:12px!important}
+  .auth-title{margin:8px 0 8px!important;text-align:center!important;color:#fff!important;font-size:25px!important;line-height:1.1!important;font-weight:900!important}
+  .auth-copy{margin:0 auto 22px!important;max-width:310px!important;text-align:center!important;color:#aeb7c8!important;font-size:13px!important;line-height:1.45!important}
+  .google-login-shell{display:grid!important;gap:10px!important}
+  .google-login-button{height:46px!important;width:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:11px!important;border:1px solid #596174!important;border-radius:7px!important;background:#fff!important;color:#202124!important;font-size:14px!important;font-weight:800!important}
+  .google-login-button:hover{background:#f7f9ff!important;border-color:#8d96aa!important}
+  .google-icon{width:19px!important;height:19px!important;display:block!important}
+  .google-error{min-height:18px!important;margin:2px 0 0!important;color:#ff6b7a!important;text-align:center!important;font-size:12px!important}
+  .auth-terms{margin:14px 0 0!important;text-align:center!important;color:#8f98aa!important;font-size:11px!important;line-height:1.35!important}
 </style>
 
-<div class="auth-modal-root" id="authModal" aria-hidden="true">
+<div class="auth-modal-root" id="authModal" aria-hidden="true" data-google-client-id="<%= googleClientId %>">
   <div class="auth-backdrop" data-auth-close></div>
-  <section class="auth-dialog" role="dialog" aria-modal="true" aria-label="Login e cadastro">
+  <section class="auth-dialog" role="dialog" aria-modal="true" aria-label="Login com Google">
     <button class="auth-close" type="button" data-auth-close aria-label="Fechar">x</button>
-
-    <div class="auth-tabs">
-      <button type="button" data-auth-tab="login" class="active">Log In</button>
-      <button type="button" data-auth-tab="signup">Sign Up</button>
+    <h2 class="auth-title">Entrar no CryptoScope</h2>
+    <p class="auth-copy">Use sua conta Google para acessar carteira, watchlist, alertas e historico.</p>
+    <div class="google-login-shell">
+      <button class="google-login-button" type="button" data-google-login>
+        <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M21.6 12.23c0-.78-.07-1.53-.2-2.23H12v4.22h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.52z"/><path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.63-2.43l-3.24-2.51c-.9.6-2.04.96-3.39.96-2.6 0-4.8-1.76-5.59-4.12H3.06v2.59A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.41 13.9a6.01 6.01 0 0 1 0-3.8V7.51H3.06a10 10 0 0 0 0 8.98l3.35-2.59z"/><path fill="#EA4335" d="M12 5.98c1.47 0 2.8.51 3.84 1.5l2.87-2.87A9.62 9.62 0 0 0 12 2a10 10 0 0 0-8.94 5.51l3.35 2.59C7.2 7.74 9.4 5.98 12 5.98z"/></svg>
+        Continuar com Google
+      </button>
+      <p class="google-error" data-google-error></p>
     </div>
-
-    <div class="auth-social auth-signup-first">
-      <button type="button"><span class="google-mark">G</span>Continue with Google</button>
-      <button type="button"><span class="apple-mark">A</span>Continue with Apple</button>
-      <button type="button"><span class="binance-mark">B</span>Continue with Binance</button>
-      <button type="button"><span class="wallet-mark">W</span>Continue with Wallet</button>
-    </div>
-
-    <form class="auth-form auth-login-form" method="post" action="/auth/login">
-      <label>Email Address<input name="email" type="email" placeholder="Enter your email address..." required></label>
-      <label>Password<a href="#">Forgot password?</a><span><input name="password" type="password" placeholder="Enter your password..." required><i>hide</i></span></label>
-      <button class="auth-submit" type="submit">Log In</button>
-    </form>
-
-    <div class="auth-separator"><span>OR</span></div>
-
-    <div class="auth-social auth-login-social">
-      <button type="button"><span class="google-mark">G</span>Continue with Google</button>
-      <button type="button"><span class="apple-mark">A</span>Continue with Apple</button>
-      <button type="button"><span class="binance-mark">B</span>Continue with Binance</button>
-      <button type="button"><span class="wallet-mark">W</span>Continue with Wallet</button>
-    </div>
-
-    <form class="auth-form auth-signup-form" method="post" action="/auth/cadastro">
-      <div class="auth-email-title"><span></span><b>OR CONTINUE WITH EMAIL</b><span></span></div>
-      <input type="hidden" name="name" value="CryptoScope User">
-      <label>Email Address<input name="email" type="email" placeholder="Enter your email address..." required></label>
-      <label>Password<span><input name="password" type="password" placeholder="Enter your password..." required><i>hide</i></span></label>
-      <label class="auth-check"><input type="checkbox" name="newsletter"><span>Please keep me updated by email with the latest crypto news, research findings, reward programs, event updates, coin listings and more information from CryptoScope.</span></label>
-      <button class="auth-submit" type="submit">Create an account</button>
-      <p class="auth-terms">By proceeding, you agree to CryptoScope's <a href="#">Terms of Use</a> & <a href="#">Privacy Policy</a>.</p>
-    </form>
+    <p class="auth-terms">Ao continuar, voce concorda com os termos e a politica de privacidade do CryptoScope.</p>
   </section>
 </div>

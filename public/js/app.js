@@ -115,13 +115,13 @@ function initSearch(){
 }
 
 function resizeCanvas(canvas){ const box = canvas.parentElement.getBoundingClientRect(); const dpr = window.devicePixelRatio || 1; canvas.width = box.width * dpr; canvas.height = box.height * dpr; const ctx = canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); return { ctx, w: box.width, h: box.height }; }
-const tfToApi = { '1t':'24h','10t':'24h','100t':'24h','1000t':'24h','1s':'24h','5s':'24h','10s':'24h','15s':'24h','30s':'24h','45s':'24h','1m':'24h','2m':'24h','3m':'24h','5m':'24h','10m':'24h','15m':'24h','30m':'7d','45m':'7d','1h':'7d','2h':'30d','3h':'30d','4h':'30d','6h':'30d','8h':'30d','12h':'90d','1d':'1y','3d':'1y','7d':'180d','30d':'1y','1y':'1y' };
-const tfMs = { '1t':60000,'10t':60000,'100t':60000,'1000t':60000,'1s':1000,'5s':5000,'10s':10000,'15s':15000,'30s':30000,'45s':45000,'1m':60000,'2m':120000,'3m':180000,'5m':300000,'10m':600000,'15m':900000,'30m':1800000,'45m':2700000,'1h':3600000,'2h':7200000,'3h':10800000,'4h':14400000,'6h':21600000,'8h':28800000,'12h':43200000,'1d':86400000,'3d':259200000,'7d':604800000,'30d':2592000000,'1y':31536000000 };
-const tfSeconds = { '1t':60,'10t':60,'100t':60,'1000t':60,'1s':1,'5s':5,'10s':10,'15s':15,'30s':30,'45s':45,'1m':60,'2m':120,'3m':180,'5m':300,'10m':600,'15m':900,'30m':1800,'45m':2700,'1h':3600,'2h':7200,'3h':10800,'4h':14400,'6h':21600,'8h':28800,'12h':43200,'1d':86400,'3d':259200,'7d':604800,'30d':2592000,'1y':31536000 };
-const tfVisible = { '1t':110,'10t':110,'100t':110,'1000t':110,'1s':110,'5s':110,'10s':110,'15s':110,'30s':110,'45s':110,'1m':110,'2m':110,'3m':110,'5m':120,'10m':110,'15m':110,'30m':110,'45m':110,'1h':120,'2h':120,'3h':120,'4h':120,'6h':110,'8h':110,'12h':100,'1d':90,'3d':90,'7d':90,'30d':110,'1y':70 };
+const tfToApi = { '1t':'24h','10t':'24h','100t':'24h','1000t':'24h','1s':'24h','5s':'24h','10s':'24h','15s':'24h','30s':'24h','45s':'24h','1m':'24h','2m':'24h','3m':'24h','5m':'24h','10m':'24h','15m':'24h','30m':'7d','45m':'7d','1h':'7d','2h':'30d','3h':'30d','4h':'30d','6h':'30d','8h':'30d','12h':'90d','1d':'1y','3d':'1y','7d':'180d','30d':'1y','1y':'1y','all':'all' };
+const tfMs = { '1t':60000,'10t':60000,'100t':60000,'1000t':60000,'1s':1000,'5s':5000,'10s':10000,'15s':15000,'30s':30000,'45s':45000,'1m':60000,'2m':120000,'3m':180000,'5m':300000,'10m':600000,'15m':900000,'30m':1800000,'45m':2700000,'1h':3600000,'2h':7200000,'3h':10800000,'4h':14400000,'6h':21600000,'8h':28800000,'12h':43200000,'1d':86400000,'3d':259200000,'7d':604800000,'30d':2592000000,'1y':31536000000,'all':2592000000 };
+const tfSeconds = { '1t':60,'10t':60,'100t':60,'1000t':60,'1s':1,'5s':5,'10s':10,'15s':15,'30s':30,'45s':45,'1m':60,'2m':120,'3m':180,'5m':300,'10m':600,'15m':900,'30m':1800,'45m':2700,'1h':3600,'2h':7200,'3h':10800,'4h':14400,'6h':21600,'8h':28800,'12h':43200,'1d':86400,'3d':259200,'7d':604800,'30d':2592000,'1y':31536000,'all':2592000 };
+const tfVisible = { '1t':110,'10t':110,'100t':110,'1000t':110,'1s':110,'5s':110,'10s':110,'15s':110,'30s':110,'45s':110,'1m':110,'2m':110,'3m':110,'5m':120,'10m':110,'15m':110,'30m':110,'45m':110,'1h':120,'2h':120,'3h':120,'4h':120,'6h':110,'8h':110,'12h':100,'1d':90,'3d':90,'7d':90,'30d':110,'1y':70,'all':140 };
 const CHART_UP = '#089981';
 const CHART_DOWN = '#f23645';
-const chartState = { rows: [], volumes: [], drawings: [], currentTool: 'cursor', draft: null, freehand: null, indicator: false, tf: '5m', pad: { l: 48, r: 74, t: 24, b: 78 }, scale: null, zoom: 2.2, offset: 0, dragging: false, dragStartX: 0, dragStartOffset: 0, crosshair: null, candleStartedAt: Date.now(), raf: 0 };
+const chartState = { rows: [], volumes: [], drawings: [], currentTool: 'cursor', draft: null, freehand: null, indicator: false, tf: '5m', pad: { l: 48, r: 74, t: 24, b: 78 }, scale: null, zoom: 2.35, offset: 0, dragging: false, dragStartX: 0, dragStartOffset: 0, crosshair: null, candleStartedAt: Date.now(), raf: 0 };
 
 
 function buildCandlesFromChart(chart, tf, officialOhlc = []){
@@ -155,7 +155,7 @@ function buildCandlesFromChart(chart, tf, officialOhlc = []){
       b.volume = volumeByBucket.get(b.t) || Math.abs(b.c - b.o) || 1;
       return [b.t, b.o, b.h, b.l, b.c, b.volume];
     }).filter(c => c.every(v => Number.isFinite(Number(v))));
-    const limit = Math.max(180, (tfVisible[tf] || 100) * 4);
+    const limit = tf === 'all' ? 1400 : Math.max(180, (tfVisible[tf] || 100) * 5);
     candles = candles.slice(-limit);
     return { rows: candles.map(c => c.slice(0,5)), volumes: candles.map(c => c[5] || 1) };
   }
@@ -179,11 +179,11 @@ function buildCandlesFromChart(chart, tf, officialOhlc = []){
     b.volume = volumeByBucket.get(b.t) || Math.abs(b.c - b.o) || 1;
     return [b.t, b.o, b.h, b.l, b.c, b.volume];
   }).filter(c => c.every(v => Number.isFinite(Number(v))));
-  const limit = Math.max(180, (tfVisible[tf] || 100) * 4);
+  const limit = tf === 'all' ? 1400 : Math.max(180, (tfVisible[tf] || 100) * 5);
   candles = candles.slice(-limit);
   return { rows: candles.map(c => c.slice(0,5)), volumes: candles.map(c => c[5] || 1) };
 }
-function visibleRows(){ const rows = chartState.rows; const target = tfVisible[chartState.tf] || 100; const count = Math.min(rows.length, Math.max(20, Math.floor(target / chartState.zoom * 2.2))); const maxOffset = Math.max(0, rows.length - count); chartState.offset = Math.max(0, Math.min(maxOffset, chartState.offset)); const start = Math.max(0, rows.length - count - Math.floor(chartState.offset)); return { rows: rows.slice(start, start + count), start }; }
+function visibleRows(){ const rows = chartState.rows; const target = tfVisible[chartState.tf] || 100; const wanted = Math.max(24, Math.floor(target / chartState.zoom * 2.15)); const count = rows.length > 80 ? Math.min(rows.length - 12, wanted) : Math.min(rows.length, wanted); const maxOffset = Math.max(0, rows.length - count); chartState.offset = Math.max(0, Math.min(maxOffset, chartState.offset)); const start = Math.max(0, rows.length - count - Math.floor(chartState.offset)); return { rows: rows.slice(start, start + count), start }; }
 function requestChartDraw(canvas){ cancelAnimationFrame(chartState.raf); chartState.raf = requestAnimationFrame(() => drawCandles(canvas)); }
 function setChartZoom(canvas, nextZoom, centerX){
   const rows = chartState.rows;
@@ -200,6 +200,14 @@ function setChartZoom(canvas, nextZoom, centerX){
   chartState.offset = rows.length - afterCount - wantedStart;
   visibleRows();
 }
+function panChart(canvas, deltaPixels){
+  if(!chartState.rows.length) return;
+  const view = visibleRows();
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const perCandle = Math.max(1, (rect.width - chartState.pad.l - chartState.pad.r) / Math.max(view.rows.length, 1));
+  chartState.offset += deltaPixels / perCandle;
+  visibleRows();
+}
 function priceToY(value){ const s = chartState.scale; return s.pad.t + (s.max - value) / s.range * s.plotH; }
 function yToPrice(y){ const s = chartState.scale; return s.max - ((y - s.pad.t) / s.plotH) * s.range; }
 function normPoint(canvas, e){ const r = canvas.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height }; }
@@ -211,7 +219,7 @@ function formatChartTime(ts, withDate = false){
   return d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }).replace('.', '') + ' ' + time;
 }
 function compactTfLabel(tf){
-  const labels = { '1t':'1t','10t':'10t','100t':'100t','1000t':'1000t','1s':'1s','5s':'5s','10s':'10s','15s':'15s','30s':'30s','45s':'45s','1m':'1m','2m':'2m','3m':'3m','5m':'5m','10m':'10m','15m':'15m','30m':'30m','45m':'45m','1h':'1h','2h':'2h','3h':'3h','4h':'4h','6h':'6h','8h':'8h','12h':'12h','1d':'1D','3d':'3D','7d':'1S','30d':'1M','1y':'1A' };
+  const labels = { '1t':'1t','10t':'10t','100t':'100t','1000t':'1000t','1s':'1s','5s':'5s','10s':'10s','15s':'15s','30s':'30s','45s':'45s','1m':'1m','2m':'2m','3m':'3m','5m':'5m','10m':'10m','15m':'15m','30m':'30m','45m':'45m','1h':'1h','2h':'2h','3h':'3h','4h':'4h','6h':'6h','8h':'8h','12h':'12h','1d':'1D','3d':'3D','7d':'1S','30d':'1M','1y':'1A','all':'Todos' };
   return labels[tf] || tf;
 }
 function drawChartTimeAxis(ctx, rows, pad, w, h, step, start){
@@ -253,14 +261,14 @@ function drawChartVolumes(ctx, rows, vols, pad, h, step, maxVol){
 function drawCrosshair(ctx,w,h){ if(!chartState.crosshair) return; const x = chartState.crosshair.x*w, y = chartState.crosshair.y*h; ctx.save(); ctx.strokeStyle = '#dfe6f3'; ctx.globalAlpha=.82; ctx.setLineDash([4,5]); ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h-chartState.pad.b+55); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; ctx.strokeStyle='#fff'; ctx.lineWidth=1.8; ctx.beginPath(); ctx.arc(x,y,11,0,Math.PI*2); ctx.moveTo(x-20,y); ctx.lineTo(x-7,y); ctx.moveTo(x+7,y); ctx.lineTo(x+20,y); ctx.moveTo(x,y-20); ctx.lineTo(x,y-7); ctx.moveTo(x,y+7); ctx.lineTo(x,y+20); ctx.stroke(); ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,2,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#101318'; ctx.strokeStyle='#6e7788'; ctx.fillRect(w-62,y-11,58,22); ctx.strokeRect(w-62,y-11,58,22); ctx.fillStyle='#f5f7fb'; ctx.font='11px Segoe UI, Arial'; if(chartState.scale) ctx.fillText(axisPrice(yToPrice(y)),w-58,y+4); ctx.restore(); }
 function drawStoredDrawings(ctx, w, h){ ctx.save(); ctx.lineWidth=1.4; ctx.strokeStyle='#d7dde8'; ctx.fillStyle='#d7dde8'; ctx.font='12px Segoe UI, Arial'; chartState.drawings.forEach(d=>{ if(d.type==='trend'||d.type==='measure'){const a=denormPoint(d.a,w,h),b=denormPoint(d.b,w,h);ctx.strokeStyle=d.type==='measure'?'#f5b942':'#d7dde8';ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();} if(d.type==='horizontal'){const a=denormPoint(d.a,w,h);ctx.strokeStyle='#8fb3ff';ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(chartState.pad.l,a.y);ctx.lineTo(w-chartState.pad.r,a.y);ctx.stroke();ctx.setLineDash([]);if(chartState.scale)ctx.fillText(usd.format(yToPrice(a.y)).replace('$',''),w-chartState.pad.r+7,a.y-5);} if(d.type==='brush'){ctx.strokeStyle='#f5b942';ctx.beginPath();d.points.map(p=>denormPoint(p,w,h)).forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();} if(d.type==='text'){const a=denormPoint(d.a,w,h);ctx.fillText(d.text||'Nota',a.x,a.y);} }); if(chartState.draft){const d=chartState.draft,a=denormPoint(d.a,w,h),b=denormPoint(d.b,w,h);ctx.strokeStyle='#8fb3ff';ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();} if(chartState.freehand){ctx.strokeStyle='#f5b942';ctx.beginPath();chartState.freehand.map(p=>denormPoint(p,w,h)).forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();} ctx.restore(); }
 function drawCandles(canvas){ const all = chartState.rows; if(!all.length) return; const view = visibleRows(); const rows = view.rows; const { ctx, w, h } = resizeCanvas(canvas); const pad = chartState.pad; const plotW = w-pad.l-pad.r; const plotH = h-pad.t-pad.b; ctx.clearRect(0,0,w,h); ctx.fillStyle='#0f0f0f'; ctx.fillRect(0,0,w,h); ctx.strokeStyle='#1f1f1f'; ctx.lineWidth=1; for(let x=pad.l;x<w-pad.r;x+=64){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h-pad.b+34);ctx.stroke();} for(let y=pad.t;y<h-pad.b+34;y+=37){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
-  const highs=rows.map(r=>r[2]), lows=rows.map(r=>r[3]); let max=Math.max(...highs), min=Math.min(...lows); const buffer=(max-min||max*.01)*.08; max+=buffer; min-=buffer; const range=max-min||1; chartState.scale={max,min,range,pad,plotW,plotH}; const y=v=>pad.t+(max-v)/range*plotH; const step=plotW/Math.max(rows.length,1); const bodyW=Math.max(3,Math.min(28,step*.72)); const vols=chartState.volumes.slice(view.start, view.start+rows.length); const maxVol=Math.max(...vols,1);
+  const highs=rows.map(r=>r[2]), lows=rows.map(r=>r[3]); let max=Math.max(...highs), min=Math.min(...lows); const buffer=(max-min||max*.01)*.1; max+=buffer; min-=buffer; const range=max-min||1; chartState.scale={max,min,range,pad,plotW,plotH}; const y=v=>pad.t+(max-v)/range*plotH; const step=plotW/Math.max(rows.length,1); const bodyW=Math.max(2,Math.min(18,step*.52)); const vols=chartState.volumes.slice(view.start, view.start+rows.length); const maxVol=Math.max(...vols,1);
   drawChartVolumes(ctx, rows, vols, pad, h, step, maxVol);
   rows.forEach((r,i)=>{const x=pad.l+i*step+step/2; const [t,open,high,low,close]=r; const up=close>=open; const color=up?CHART_UP:CHART_DOWN; ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=1.2; ctx.globalAlpha=1; let top=Math.min(y(open),y(close)); let bh=Math.abs(y(open)-y(close)); if(bh < 3){ top = ((y(open)+y(close))/2)-1.5; bh = 3; } const wickPad=4; const wickTop=Math.min(y(high), top-wickPad); const wickBottom=Math.max(y(low), top+bh+wickPad); ctx.strokeStyle=color; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x,wickTop); ctx.lineTo(x,wickBottom); ctx.stroke(); ctx.fillRect(x-bodyW/2,top,bodyW,bh);});
   if(chartState.indicator){ctx.strokeStyle='#f5b942';ctx.lineWidth=1.3;ctx.beginPath();rows.forEach((r,i)=>{const slice=rows.slice(Math.max(0,i-8),i+1);const avg=slice.reduce((s,v)=>s+v[4],0)/slice.length;const x=pad.l+i*step+step/2, yy=y(avg);i?ctx.lineTo(x,yy):ctx.moveTo(x,yy);});ctx.stroke();}
   ctx.fillStyle='#9aa4b2';ctx.font='11px Segoe UI, Arial';for(let i=0;i<8;i++){const val=max-i*range/7, yy=y(val);ctx.fillText(axisPrice(val),w-pad.r+10,yy+4);} drawChartTimeAxis(ctx, rows, pad, w, h, step, view.start); const last=all.at(-1); if(last){const yy=y(last[4]); const up=last[4]>=last[1]; ctx.strokeStyle=up?CHART_UP:CHART_DOWN;ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(0,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=ctx.strokeStyle;ctx.fillRect(w-pad.r+6,yy-18,62,36);ctx.fillStyle='#fff';ctx.font='700 11px Segoe UI, Arial';ctx.fillText(axisPrice(last[4]),w-pad.r+11,yy-4);ctx.font='10px Segoe UI, Arial';ctx.fillText(candleCountdown(),w-pad.r+11,yy+10); }
   drawStoredDrawings(ctx,w,h); drawCrosshair(ctx,w,h); }
 function candleCountdown(){ const seconds=tfSeconds[chartState.tf]||300; const elapsed=Math.floor((Date.now()-chartState.candleStartedAt)/1000)%seconds; const remain=Math.max(0,seconds-elapsed); const hh=Math.floor(remain/3600), mm=Math.floor((remain%3600)/60), ss=remain%60; return hh>0 ? String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0') : String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0'); }
-function updateTabTitle(price, change24h){ const symbol = ($('#coinSwitcherSearch')?.value || 'CRYPTO').trim(); const change = Number(change24h || 0); const arrow = change >= 0 ? '▲ +' : '▼ '; document.title = symbol + ' ' + axisPrice(price) + ' ' + arrow + Math.abs(change).toFixed(2) + '%'; }
+function updateTabTitle(price, change24h){ const symbol = ($('#coinSwitcherSearch')?.value || 'CRYPTO').trim(); const change = Number(change24h || 0); const arrow = change >= 0 ? '▲' : '▼'; const signed = (change >= 0 ? '+' : '-') + Math.abs(change).toFixed(2) + '%'; const display = Number(price || 0).toLocaleString('pt-BR', { maximumFractionDigits: Number(price) >= 1000 ? 0 : 4 }); document.title = symbol + ' ' + display + ' ' + arrow + ' ' + signed; }
 function updateOhlcLabel(){const last=chartState.rows.at(-1); if(!last||!$('#ohlcText'))return; const diff=last[4]-last[1]; $('#ohlcText').textContent='Abr '+last[1].toFixed(3)+' Max '+last[2].toFixed(3)+' Min '+last[3].toFixed(3)+' Fch '+last[4].toFixed(3)+' '+(diff>=0?'+':'')+diff.toFixed(3); $('#ohlcText').className=diff>=0?'pos':'neg'; }
 function updateLiveChange(change24h, price){
   const change = Number(change24h);
@@ -313,6 +321,21 @@ function applyMasterPrice(price, change24h, canvas){
 function attachDrawing(canvas){
   const activePointers = new Map();
   let pinch = null;
+  const releasePointer = id => {
+    try {
+      if(canvas.hasPointerCapture && canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
+    } catch(_) {}
+  };
+  const resetInteraction = () => {
+    activePointers.forEach((_, id) => releasePointer(id));
+    activePointers.clear();
+    pinch = null;
+    chartState.dragging = false;
+    chartState.draft = null;
+    chartState.freehand = null;
+    chartState.crosshair = null;
+    if(chartState.rows.length) requestChartDraw(canvas);
+  };
   const pointerDistance = () => {
     const points = [...activePointers.values()];
     if(points.length < 2) return 0;
@@ -325,9 +348,21 @@ function attachDrawing(canvas){
     return ((points[0].x + points[1].x) / 2) - rect.left;
   };
   $('#drawingToolbar')?.addEventListener('click',e=>{const btn=e.target.closest('button'); if(!btn)return; $$('#drawingToolbar button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); chartState.currentTool=btn.dataset.tool; if(['levels','emoji','magnet','lock-draw','lock','eye'].includes(chartState.currentTool)) chartState.currentTool='cursor'; if(chartState.currentTool==='ruler') chartState.currentTool='measure'; if(chartState.currentTool==='zoomTool') chartState.currentTool='cursor'; if(chartState.currentTool==='erase'){chartState.drawings=[];chartState.currentTool='cursor';$$('#drawingToolbar button').forEach(b=>b.classList.remove('active'));$('#drawingToolbar [data-tool="cursor"]').classList.add('active');drawCandles(canvas);}});
-  canvas.addEventListener('wheel',e=>{ e.preventDefault(); setChartZoom(canvas, chartState.zoom*(e.deltaY<0?1.16:.86), e.clientX - canvas.getBoundingClientRect().left); requestChartDraw(canvas);},{passive:false});
+  canvas.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const centerX = e.clientX - rect.left;
+    if(e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)){
+      panChart(canvas, e.deltaX || e.deltaY);
+    } else {
+      const zoomFactor = Math.exp(-e.deltaY * 0.0018);
+      setChartZoom(canvas, chartState.zoom * zoomFactor, centerX);
+    }
+    requestChartDraw(canvas);
+  },{passive:false});
   canvas.addEventListener('pointerdown',e=>{
-    canvas.setPointerCapture(e.pointerId);
+    if(e.pointerType === 'touch') return;
+    try { canvas.setPointerCapture(e.pointerId); } catch(_) {}
     activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if(activePointers.size === 2){
       pinch = { distance: pointerDistance(), zoom: chartState.zoom, centerX: pointerCenterX() };
@@ -343,6 +378,7 @@ function attachDrawing(canvas){
     else chartState.draft={type:chartState.currentTool,a:p,b:p};
   });
   canvas.addEventListener('pointermove',e=>{
+    if(e.pointerType === 'touch') return;
     if(activePointers.has(e.pointerId)) activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if(activePointers.size >= 2 && pinch){
       const distance = pointerDistance();
@@ -351,15 +387,25 @@ function attachDrawing(canvas){
       return;
     }
     chartState.crosshair=normPoint(canvas,e);
-    if(chartState.dragging){const dx=e.clientX-chartState.dragStartX; const view=visibleRows(); const perCandle=(canvas.parentElement.getBoundingClientRect().width-chartState.pad.l-chartState.pad.r)/Math.max(view.rows.length,1); chartState.offset=chartState.dragStartOffset+dx/perCandle; requestChartDraw(canvas); return;}
+    if(chartState.dragging){const dx=e.clientX-chartState.dragStartX; const view=visibleRows(); const perCandle=(canvas.parentElement.getBoundingClientRect().width-chartState.pad.l-chartState.pad.r)/Math.max(view.rows.length,1); chartState.offset=chartState.dragStartOffset+dx/perCandle; visibleRows(); requestChartDraw(canvas); return;}
     if(chartState.freehand){chartState.freehand.push(normPoint(canvas,e));requestChartDraw(canvas);}
     else if(chartState.draft){chartState.draft.b=normPoint(canvas,e);requestChartDraw(canvas);}
     else requestChartDraw(canvas);
   });
   canvas.addEventListener('pointerleave',()=>{ if(activePointers.size) return; chartState.crosshair=null;drawCandles(canvas);});
   const finishPointer = e => {
+    releasePointer(e.pointerId);
     activePointers.delete(e.pointerId);
-    if(activePointers.size < 2) pinch = null;
+    if(activePointers.size < 2){
+      pinch = null;
+      if(activePointers.size === 1 && chartState.currentTool === 'cursor'){
+        const remaining = [...activePointers.values()][0];
+        chartState.dragging = true;
+        chartState.dragStartX = remaining.x;
+        chartState.dragStartOffset = chartState.offset;
+        return;
+      }
+    }
     if(activePointers.size) return;
     chartState.dragging=false;
     if(chartState.freehand){chartState.drawings.push({type:'brush',points:chartState.freehand});chartState.freehand=null;}
@@ -368,6 +414,70 @@ function attachDrawing(canvas){
   };
   canvas.addEventListener('pointerup',finishPointer);
   canvas.addEventListener('pointercancel',finishPointer);
+  canvas.addEventListener('lostpointercapture',finishPointer);
+  window.addEventListener('blur',resetInteraction);
+  document.addEventListener('visibilitychange',()=>{ if(document.hidden) resetInteraction(); });
+  let touchGesture = null;
+  const touchPoint = t => ({ x: t.clientX, y: t.clientY });
+  const touchDistance = touches => {
+    if(touches.length < 2) return 0;
+    return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+  };
+  const touchCenterX = touches => {
+    const rect = canvas.getBoundingClientRect();
+    if(touches.length < 2) return touches[0] ? touches[0].clientX - rect.left : rect.width / 2;
+    return ((touches[0].clientX + touches[1].clientX) / 2) - rect.left;
+  };
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    chartState.draft = null;
+    chartState.freehand = null;
+    if(e.touches.length >= 2){
+      touchGesture = { mode: 'pinch', distance: touchDistance(e.touches), zoom: chartState.zoom, centerX: touchCenterX(e.touches) };
+      chartState.dragging = false;
+      return;
+    }
+    const p = touchPoint(e.touches[0]);
+    touchGesture = { mode: 'pan', startX: p.x, startY: p.y, offset: chartState.offset };
+    chartState.dragging = true;
+  }, { passive: false });
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if(!touchGesture) return;
+    if(e.touches.length >= 2 && touchGesture.mode === 'pinch'){
+      const distance = touchDistance(e.touches);
+      if(distance > 8) setChartZoom(canvas, touchGesture.zoom * (distance / Math.max(1, touchGesture.distance)), touchCenterX(e.touches) || touchGesture.centerX);
+      requestChartDraw(canvas);
+      return;
+    }
+    if(e.touches.length === 1){
+      if(touchGesture.mode !== 'pan'){
+        const p = touchPoint(e.touches[0]);
+        touchGesture = { mode: 'pan', startX: p.x, startY: p.y, offset: chartState.offset };
+      }
+      const p = touchPoint(e.touches[0]);
+      const view = visibleRows();
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const perCandle = Math.max(1, (rect.width - chartState.pad.l - chartState.pad.r) / Math.max(view.rows.length, 1));
+      chartState.offset = touchGesture.offset + (p.x - touchGesture.startX) / perCandle;
+      visibleRows();
+      chartState.crosshair = normPoint(canvas, { clientX: p.x, clientY: p.y });
+      requestChartDraw(canvas);
+    }
+  }, { passive: false });
+  const finishTouch = e => {
+    if(e.touches && e.touches.length === 1){
+      const p = touchPoint(e.touches[0]);
+      touchGesture = { mode: 'pan', startX: p.x, startY: p.y, offset: chartState.offset };
+      return;
+    }
+    touchGesture = null;
+    chartState.dragging = false;
+    chartState.crosshair = null;
+    if(chartState.rows.length) requestChartDraw(canvas);
+  };
+  canvas.addEventListener('touchend', finishTouch, { passive: false });
+  canvas.addEventListener('touchcancel', finishTouch, { passive: false });
 }
 async function initCandles(){ const canvas=$('#candleChart'); if(!canvas)return; attachDrawing(canvas);  $('#indicatorToggle')?.addEventListener('click',()=>{chartState.indicator=!chartState.indicator;$('#indicatorToggle').classList.toggle('active',chartState.indicator);drawCandles(canvas);}); setInterval(()=>{if($('#clockNow'))$('#clockNow').textContent=new Date().toLocaleTimeString()+' UTC-3'; if(chartState.rows.length) drawCandles(canvas);},1000);
   function watchIconHtml(c){const image=coinImageUrl(c);const src=image?'<img src="'+image+'" alt="">':'';const fallback=(c.symbol||'?').slice(0,1).toUpperCase();return '<span class="watch-icon">'+(src||fallback)+'</span>'; }
@@ -508,6 +618,82 @@ function initAuthModal(){
   document.addEventListener('keydown', e => { if(e.key === 'Escape' && modal.classList.contains('open')) close(); });
 }
 
+function initGoogleAuth(){
+  const buttons = $$('[data-google-login]');
+  if(!buttons.length) return;
+  const root = $('[data-google-client-id]');
+  const clientId = root?.dataset.googleClientId;
+  const errorBox = () => $('[data-google-error]');
+  let scriptPromise;
+  function setError(message){
+    const box = errorBox();
+    if(box) box.textContent = message || '';
+  }
+  function loadGoogleScript(){
+    if(window.google?.accounts?.id) return Promise.resolve();
+    if(scriptPromise) return scriptPromise;
+    scriptPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Nao foi possivel carregar o login do Google.'));
+      document.head.appendChild(script);
+    });
+    return scriptPromise;
+  }
+  async function sendCredential(credential){
+    const response = await fetch('/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential, redirect: '/carteira' })
+    });
+    const data = await response.json().catch(() => ({}));
+    if(!response.ok || !data.ok) throw new Error(data.error || 'Nao foi possivel entrar com Google.');
+    location.href = data.redirect || '/carteira';
+  }
+  async function startGoogleLogin(){
+    try {
+      setError('');
+      if(!clientId) throw new Error('Client ID do Google nao configurado.');
+      await loadGoogleScript();
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: async response => {
+          try {
+            if(!response.credential) throw new Error('Google nao retornou credencial.');
+            await sendCredential(response.credential);
+          } catch (error) {
+            setError(error.message);
+          }
+        }
+      });
+      window.google.accounts.id.prompt(notification => {
+        if(notification.isNotDisplayed?.() || notification.isSkippedMoment?.()) {
+          setError('Confira se o dominio esta autorizado no Google Cloud e tente novamente.');
+        }
+      });
+    } catch (error) {
+      setError(error.message);
+    }
+  }
+  buttons.forEach(button => button.addEventListener('click', startGoogleLogin));
+  loadGoogleScript().then(() => {
+    if(!clientId) return;
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async response => {
+        try {
+          if(response.credential) await sendCredential(response.credential);
+        } catch (error) {
+          setError(error.message);
+        }
+      }
+    });
+  }).catch(() => {});
+}
+
 function initMarketMenus(){
   const buttons = $$('[data-market-menu]');
   if(!buttons.length) return;
@@ -528,4 +714,4 @@ function initMarketMenus(){
   document.addEventListener('keydown', e => { if(e.key === 'Escape') closeAll(); });
 }
 
-document.addEventListener('DOMContentLoaded',()=>{initSparklines();initSearch();initCoinSearchSwitcher();initResizableWatchlist();initCandles();initAverage();initProfit();initConverter();initChat();initAuthModal();initMarketMenus();});
+document.addEventListener('DOMContentLoaded',()=>{initSparklines();initSearch();initCoinSearchSwitcher();initResizableWatchlist();initCandles();initAverage();initProfit();initConverter();initChat();initAuthModal();initGoogleAuth();initMarketMenus();});

@@ -1,3 +1,8 @@
-const db = require('../config/db');
-async function add(userId, query) { if (!query) return; await db.execute('INSERT INTO search_history (user_id, query) VALUES (:userId,:query)', { userId: userId || null, query }); }
+const { query } = require('../config/postgres');
+
+async function add(userId, text) {
+  if (!text) return;
+  await query('INSERT INTO search_history (user_id, query) VALUES ($1, $2)', [userId || null, text]);
+}
+
 module.exports = { add };
