@@ -217,6 +217,7 @@ async function chart(id, days = 1) {
     if (!Array.isArray(data) || data.length < 2) return null;
     return {
       prices: data.map(k => [Number(k[0]), Number(k[4])]),
+      ohlc: data.map(k => [Number(k[0]), Number(k[1]), Number(k[2]), Number(k[3]), Number(k[4])]),
       market_caps: data.map(k => [Number(k[0]), 0]),
       total_volumes: data.map(k => [Number(k[0]), Number(k[7] || k[5] || 0)]),
       source: 'binance'

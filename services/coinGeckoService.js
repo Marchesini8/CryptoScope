@@ -74,6 +74,13 @@ async function getOhlc(id, days = 1, currency = 'usd') {
   });
 }
 
+async function getGlobal() {
+  return cache.remember('global-market', 60000, async () => {
+    const { data } = await get('/global');
+    return data && data.data ? data.data : null;
+  });
+}
+
 async function simplePrice(ids, currencies = 'usd,brl', options = {}) {
   const key = 'simple:' + ids + ':' + currencies;
   const ttl = options.live ? 5000 : 45000;
@@ -87,4 +94,4 @@ function getCachedRanking() {
   return cache.get('ranking', { allowExpired: true });
 }
 
-module.exports = { getRanking, getCoin, getChart, getOhlc, simplePrice, getCachedRanking, isRateLimitError };
+module.exports = { getRanking, getCoin, getChart, getOhlc, getGlobal, simplePrice, getCachedRanking, isRateLimitError };

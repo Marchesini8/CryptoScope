@@ -18,10 +18,25 @@
           </div>
           <button class="round-btn" id="openCoinSearch" title="Pesquisar simbolo">+</button>
         </div>
-        <div class="timeframe-strip" id="timeframeStrip">
-          <button data-period="1m">1m</button><button class="active" data-period="5m">5m</button><button data-period="15m">15m</button><button data-period="1h">1h</button><button data-period="4h">4h</button><button data-period="1d">1D</button><button data-period="7d">7D</button><button data-period="30d">30D</button><button data-period="1y">1A</button>
+        <div class="timeframe-strip timeframe-menu-wrap" id="timeframeStrip">
+          <button class="timeframe-current active" id="timeframeMenuToggle" type="button" data-period="5m"><span id="timeframeCurrent">5m</span><i></i></button>
+          <div class="timeframe-menu" id="timeframeMenu">
+            <button class="custom-interval" type="button"><span class="top-icon plus-icon"></span>Adicionar intervalo personalizado...</button>
+            <section><header>TICKS</header><button data-period="1t">1 tick</button><button data-period="10t">10 ticks</button><button data-period="100t">100 ticks</button><button data-period="1000t">1000 ticks</button></section>
+            <section><header>SEGUNDOS</header><button data-period="1s">1 segundo</button><button data-period="5s">5 segundos</button><button data-period="10s">10 segundos</button><button data-period="15s">15 segundos</button><button data-period="30s">30 segundos</button><button data-period="45s">45 segundos</button></section>
+            <section><header>MINUTOS</header><button data-period="1m">1 minuto</button><button data-period="2m">2 minutos</button><button data-period="3m">3 minutos</button><button class="active" data-period="5m">5 minutos</button><button data-period="10m">10 minutos</button><button data-period="15m">15 minutos</button><button data-period="30m">30 minutos</button><button data-period="45m">45 minutos</button></section>
+            <section><header>HORAS</header><button data-period="1h">1 hora</button><button data-period="2h">2 horas</button><button data-period="3h">3 horas</button><button data-period="4h">4 horas</button><button data-period="6h">6 horas</button><button data-period="8h">8 horas</button><button data-period="12h">12 horas</button></section>
+            <section><header>DIAS</header><button data-period="1d">1 dia</button><button data-period="3d">3 dias</button><button data-period="7d">1 semana</button><button data-period="30d">1 mes</button><button data-period="1y">1 ano</button></section>
+          </div>
         </div>
-        <div class="chart-actions"><button id="indicatorToggle">Indicadores</button><button>Alerta</button><button>Replay</button><button class="ghost">undo</button><button class="ghost">redo</button></div>
+        <div class="chart-actions">
+          <button id="indicatorToggle" type="button"><span class="top-icon indicator-icon"></span>Indicadores</button>
+          <button type="button" title="Layout"><span class="top-icon grid-icon"></span></button>
+          <button type="button"><span class="top-icon alert-icon"></span>Alerta</button>
+          <button type="button"><span class="top-icon replay-icon"></span>Replay</button>
+          <button class="ghost icon-only" type="button" title="Desfazer"><span class="top-icon undo-icon"></span></button>
+          <button class="ghost icon-only" type="button" title="Refazer"><span class="top-icon redo-icon"></span></button>
+        </div>
       </div>
       <div class="chart-body">
         <aside class="drawing-toolbar" id="drawingToolbar">

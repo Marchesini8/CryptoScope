@@ -1,5 +1,7 @@
 const coin = require('../services/coinGeckoService');
 const binance = require('../services/binanceService');
+const axios = require('axios');
+const cache = require('../utils/cache');
 
 function logFallback(label, error) {
   if (coin.isRateLimitError && coin.isRateLimitError(error)) return;
@@ -167,18 +169,99 @@ exports.ranking = async (req, res) => {
 exports.chart = async (req, res) => {
   const days = chartDays[req.query.period] || 1;
   const currency = req.query.currency || 'usd';
-  if (preferBinance() && currency === 'usd') {
+  if (currency === 'usd') {
     const data = await binance.chart(req.params.id, days).catch(() => null);
     if (data && Array.isArray(data.prices) && data.prices.length > 1) return res.json(data);
   }
   try {
     const data = await coin.getChart(req.params.id, days, currency);
+    try {
+      const ohlc = await coin.getOhlc(req.params.id, ohlcDays[req.query.period] || days, currency);
+      if (Array.isArray(ohlc) && ohlc.length) data.ohlc = ohlc;
+    } catch (ohlcError) {
+      logFallback('Chart OHLC fallback', ohlcError);
+    }
     if (!data || !Array.isArray(data.prices) || data.prices.length < 2) return res.json((currency === 'usd' && await binance.chart(req.params.id, days).catch(() => null)) || fallbackChart(req.params.id, days, currency));
     res.json(data);
   } catch (error) {
     logFallback('Chart API fallback', error);
     res.json((currency === 'usd' && await binance.chart(req.params.id, days).catch(() => null)) || fallbackChart(req.params.id, days, currency));
   }
+};
+
+function fearLabel(value) {
+  const n = Number(value || 0);
+  if (n <= 24) return 'Extreme fear';
+  if (n <= 44) return 'Fear';
+  if (n <= 55) return 'Neutral';
+  if (n <= 74) return 'Greed';
+  return 'Extreme greed';
+}
+
+function altSeasonScore(rows) {
+  const btc = rows.find(row => row.id === 'bitcoin');
+  const btc7d = Number(btc && btc.price_change_percentage_7d_in_currency);
+  const alts = rows.filter(row => row.id !== 'bitcoin' && !['tether', 'usd-coin'].includes(row.id)).slice(0, 50);
+  if (!Number.isFinite(btc7d) || !alts.length) return 50;
+  const better = alts.filter(row => Number(row.price_change_percentage_7d_in_currency) > btc7d).length;
+  return Math.max(0, Math.min(100, Math.round((better / alts.length) * 100)));
+}
+
+function metricMove(rows, key) {
+  const weighted = rows.reduce((acc, row) => {
+    const weight = Number(row[key] || 0);
+    const change = Number(row.price_change_percentage_24h_in_currency || 0);
+    if (!Number.isFinite(weight) || !Number.isFinite(change) || weight <= 0) return acc;
+    acc.weight += weight;
+    acc.move += weight * change;
+    return acc;
+  }, { weight: 0, move: 0 });
+  return weighted.weight ? weighted.move / weighted.weight : 0;
+}
+
+async function fearAndGreed() {
+  return cache.remember('fear-greed', 900000, async () => {
+    const { data } = await axios.get('https://api.alternative.me/fng/', { timeout: 8000, params: { limit: 1, format: 'json' } });
+    const item = data && Array.isArray(data.data) && data.data[0];
+    const value = Number(item && item.value);
+    if (!Number.isFinite(value)) throw new Error('Fear and Greed indisponivel');
+    return { value, label: item.value_classification || fearLabel(value), updatedAt: Number(item.timestamp || 0) * 1000 || Date.now() };
+  });
+}
+
+exports.marketMetrics = async (req, res) => {
+  let ranking;
+  try {
+    ranking = await coin.getRanking();
+    if (!ranking || !Array.isArray(ranking.usd) || !ranking.usd.length) ranking = await rankingWithBinance();
+  } catch (error) {
+    logFallback('Market metrics ranking fallback', error);
+    ranking = await rankingWithBinance();
+  }
+  const rows = ranking.usd || [];
+  const fallbackMarketCap = rows.reduce((sum, row) => sum + Number(row.market_cap || 0), 0);
+  const fallbackVolume24h = rows.reduce((sum, row) => sum + Number(row.total_volume || 0), 0);
+  let global = null;
+  try { global = await coin.getGlobal(); } catch (error) { logFallback('Global market metrics fallback', error); }
+  const marketCap = Number(global?.total_market_cap?.usd) || fallbackMarketCap;
+  const volume24h = Number(global?.total_volume?.usd) || fallbackVolume24h;
+  const marketCapChange24h = Number.isFinite(Number(global?.market_cap_change_percentage_24h_usd)) ? Number(global.market_cap_change_percentage_24h_usd) : metricMove(rows, 'market_cap');
+  const volumeChange24h = metricMove(rows, 'total_volume');
+  let fear = null;
+  try { fear = await fearAndGreed(); } catch (error) { logFallback('Fear and Greed fallback', error); }
+  if (!fear) {
+    const proxy = Math.round(Math.max(0, Math.min(100, 50 + marketCapChange24h * 4)));
+    fear = { value: proxy, label: fearLabel(proxy), updatedAt: Date.now(), fallback: true };
+  }
+  res.json({
+    marketCap,
+    volume24h,
+    marketCapChange24h,
+    volumeChange24h,
+    altSeason: altSeasonScore(rows),
+    fearGreed: fear,
+    updatedAt: Date.now()
+  });
 };
 
 exports.ohlc = async (req, res) => {
@@ -208,27 +291,29 @@ exports.price = async (req, res) => {
 exports.searchCoins = async (req, res) => {
   try {
     const q = String(req.query.q || '').trim().toLowerCase();
+    const limit = q ? 80 : 300;
     const ranking = await coin.getRanking();
     const rows = (ranking.usd || [])
       .filter(c => !q || c.name.toLowerCase().includes(q) || c.symbol.toLowerCase().includes(q) || c.id.toLowerCase().includes(q))
-      .slice(0, 20)
+      .slice(0, limit)
       .map(c => ({ id: c.id, name: c.name, symbol: c.symbol, image: c.image, price: c.current_price, change: c.price_change_percentage_24h_in_currency }));
     if (rows.length) return res.json(rows);
-    const live = await binance.marketRanking(100).catch(() => null);
+    const live = await binance.marketRanking(limit).catch(() => null);
     const liveRows = live && Array.isArray(live.usd) ? live.usd : [];
     res.json((liveRows.length ? liveRows : fallbackRanking().usd)
       .filter(c => !q || c.name.toLowerCase().includes(q) || c.symbol.toLowerCase().includes(q) || c.id.toLowerCase().includes(q))
-      .slice(0, 20)
+      .slice(0, limit)
       .map(c => ({ id: c.id, name: c.name, symbol: c.symbol, image: c.image, price: c.current_price, change: c.price_change_percentage_24h_in_currency })));
   } catch (error) {
     logFallback('Search API fallback', error);
     {
     const q = String(req.query.q || '').trim().toLowerCase();
-    const live = await binance.marketRanking(100).catch(() => null);
+    const limit = q ? 80 : 300;
+    const live = await binance.marketRanking(limit).catch(() => null);
     const liveRows = live && Array.isArray(live.usd) ? live.usd : [];
     res.json((liveRows.length ? liveRows : fallbackRanking().usd)
       .filter(c => !q || c.name.toLowerCase().includes(q) || c.symbol.toLowerCase().includes(q) || c.id.toLowerCase().includes(q))
-      .slice(0, 20)
+      .slice(0, limit)
       .map(c => ({ id: c.id, name: c.name, symbol: c.symbol, image: c.image, price: c.current_price, change: c.price_change_percentage_24h_in_currency })));
   }
   }
@@ -237,6 +322,6 @@ exports.searchCoins = async (req, res) => {
 function fallbackSearch(q) {
   return fallbackRanking().usd
     .filter(c => !q || c.name.toLowerCase().includes(q) || c.symbol.toLowerCase().includes(q) || c.id.toLowerCase().includes(q))
-    .slice(0, 20)
+    .slice(0, q ? 80 : 300)
     .map(c => ({ id: c.id, name: c.name, symbol: c.symbol, image: c.image, price: c.current_price, change: c.price_change_percentage_24h_in_currency }));
 }
