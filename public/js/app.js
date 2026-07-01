@@ -124,7 +124,7 @@ const CHART_DOWN = '#f23645';
 const DEFAULT_CHART_ZOOM = 2.35;
 const MIN_CHART_ZOOM = 0.055;
 const MAX_CHART_ZOOM = 42;
-const chartState = { rows: [], volumes: [], drawings: [], currentTool: 'cursor', draft: null, freehand: null, indicator: false, tf: '5m', pad: { l: 48, r: 74, t: 24, b: 78 }, scale: null, zoom: 2.35, offset: 0, dragging: false, dragStartX: 0, dragStartOffset: 0, crosshair: null, candleStartedAt: Date.now(), raf: 0, changeBase24h: null };
+const chartState = { rows: [], volumes: [], drawings: [], currentTool: 'cursor', draft: null, freehand: null, indicator: false, tf: '5m', pad: { l: 48, r: 74, t: 24, b: 78 }, scale: null, zoom: 2.35, offset: 0, rightOffset: 38, dragging: false, dragStartX: 0, dragStartOffset: 0, crosshair: null, candleStartedAt: Date.now(), raf: 0, changeBase24h: null };
 
 
 function buildCandlesFromChart(chart, tf, officialOhlc = []){
@@ -186,7 +186,18 @@ function buildCandlesFromChart(chart, tf, officialOhlc = []){
   candles = candles.slice(-limit);
   return { rows: candles.map(c => c.slice(0,5)), volumes: candles.map(c => c[5] || 1) };
 }
-function visibleRows(){ const rows = chartState.rows; const target = tfVisible[chartState.tf] || 100; const wanted = Math.max(12, Math.floor(target / chartState.zoom * 2.15)); const count = Math.min(rows.length, wanted); const maxOffset = Math.max(0, rows.length - count); chartState.offset = Math.max(0, Math.min(maxOffset, chartState.offset)); const start = Math.max(0, rows.length - count - Math.floor(chartState.offset)); return { rows: rows.slice(start, start + count), start }; }
+function visibleRows(){
+  const rows = chartState.rows;
+  const target = tfVisible[chartState.tf] || 100;
+  const totalSlots = Math.max(12, Math.floor(target / chartState.zoom * 2.15));
+  const rightOffset = Math.max(0, Math.min(totalSlots - 8, Math.round(chartState.rightOffset || 0)));
+  const count = Math.min(rows.length, Math.max(8, totalSlots - rightOffset));
+  const maxOffset = Math.max(0, rows.length - count);
+  chartState.offset = Math.max(0, Math.min(maxOffset, chartState.offset));
+  chartState.rightOffset = rightOffset;
+  const start = Math.max(0, rows.length - count - Math.floor(chartState.offset));
+  return { rows: rows.slice(start, start + count), start, totalSlots, rightOffset };
+}
 function requestChartDraw(canvas){ cancelAnimationFrame(chartState.raf); chartState.raf = requestAnimationFrame(() => drawCandles(canvas)); }
 function normalizeWheelDelta(deltaY){ return Math.max(-900, Math.min(900, Number(deltaY) || 0)); }
 function setChartZoom(canvas, nextZoom, centerX){
@@ -197,10 +208,11 @@ function setChartZoom(canvas, nextZoom, centerX){
   const plotW = Math.max(1, rect.width - chartState.pad.l - chartState.pad.r);
   const x = Number.isFinite(centerX) ? centerX : chartState.pad.l + plotW * .5;
   const ratio = Math.max(0, Math.min(1, (x - chartState.pad.l) / plotW));
-  const anchor = before.start + ratio * Math.max(before.rows.length - 1, 1);
+  const anchor = before.start + ratio * Math.max(before.totalSlots - 1, 1);
   chartState.zoom = Math.max(MIN_CHART_ZOOM, Math.min(MAX_CHART_ZOOM, nextZoom));
-  const afterCount = visibleRows().rows.length;
-  const wantedStart = anchor - ratio * Math.max(afterCount - 1, 1);
+  const after = visibleRows();
+  const wantedStart = anchor - ratio * Math.max(after.totalSlots - 1, 1);
+  const afterCount = after.rows.length;
   chartState.offset = rows.length - afterCount - wantedStart;
   visibleRows();
 }
@@ -208,7 +220,7 @@ function panChart(canvas, deltaPixels){
   if(!chartState.rows.length) return;
   const view = visibleRows();
   const rect = canvas.parentElement.getBoundingClientRect();
-  const perCandle = Math.max(1, (rect.width - chartState.pad.l - chartState.pad.r) / Math.max(view.rows.length, 1));
+  const perCandle = Math.max(1, (rect.width - chartState.pad.l - chartState.pad.r) / Math.max(view.totalSlots, 1));
   chartState.offset += deltaPixels / perCandle;
   visibleRows();
 }
@@ -265,7 +277,7 @@ function drawChartVolumes(ctx, rows, vols, pad, h, step, maxVol){
 function drawCrosshair(ctx,w,h){ if(!chartState.crosshair) return; const x = chartState.crosshair.x*w, y = chartState.crosshair.y*h; ctx.save(); ctx.strokeStyle = '#dfe6f3'; ctx.globalAlpha=.82; ctx.setLineDash([4,5]); ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h-chartState.pad.b+55); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1; ctx.strokeStyle='#fff'; ctx.lineWidth=1.8; ctx.beginPath(); ctx.arc(x,y,11,0,Math.PI*2); ctx.moveTo(x-20,y); ctx.lineTo(x-7,y); ctx.moveTo(x+7,y); ctx.lineTo(x+20,y); ctx.moveTo(x,y-20); ctx.lineTo(x,y-7); ctx.moveTo(x,y+7); ctx.lineTo(x,y+20); ctx.stroke(); ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(x,y,2,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#101318'; ctx.strokeStyle='#6e7788'; ctx.fillRect(w-62,y-11,58,22); ctx.strokeRect(w-62,y-11,58,22); ctx.fillStyle='#f5f7fb'; ctx.font='11px Segoe UI, Arial'; if(chartState.scale) ctx.fillText(axisPrice(yToPrice(y)),w-58,y+4); ctx.restore(); }
 function drawStoredDrawings(ctx, w, h){ ctx.save(); ctx.lineWidth=1.4; ctx.strokeStyle='#d7dde8'; ctx.fillStyle='#d7dde8'; ctx.font='12px Segoe UI, Arial'; chartState.drawings.forEach(d=>{ if(d.type==='trend'||d.type==='measure'){const a=denormPoint(d.a,w,h),b=denormPoint(d.b,w,h);ctx.strokeStyle=d.type==='measure'?'#f5b942':'#d7dde8';ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();} if(d.type==='horizontal'){const a=denormPoint(d.a,w,h);ctx.strokeStyle='#8fb3ff';ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(chartState.pad.l,a.y);ctx.lineTo(w-chartState.pad.r,a.y);ctx.stroke();ctx.setLineDash([]);if(chartState.scale)ctx.fillText(usd.format(yToPrice(a.y)).replace('$',''),w-chartState.pad.r+7,a.y-5);} if(d.type==='brush'){ctx.strokeStyle='#f5b942';ctx.beginPath();d.points.map(p=>denormPoint(p,w,h)).forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();} if(d.type==='text'){const a=denormPoint(d.a,w,h);ctx.fillText(d.text||'Nota',a.x,a.y);} }); if(chartState.draft){const d=chartState.draft,a=denormPoint(d.a,w,h),b=denormPoint(d.b,w,h);ctx.strokeStyle='#8fb3ff';ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();} if(chartState.freehand){ctx.strokeStyle='#f5b942';ctx.beginPath();chartState.freehand.map(p=>denormPoint(p,w,h)).forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();} ctx.restore(); }
 function drawCandles(canvas){ const all = chartState.rows; if(!all.length) return; const view = visibleRows(); const rows = view.rows; const { ctx, w, h } = resizeCanvas(canvas); const pad = chartState.pad; const plotW = w-pad.l-pad.r; const plotH = h-pad.t-pad.b; ctx.clearRect(0,0,w,h); ctx.fillStyle='#0f0f0f'; ctx.fillRect(0,0,w,h); ctx.strokeStyle='#1f1f1f'; ctx.lineWidth=1; for(let x=pad.l;x<w-pad.r;x+=64){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h-pad.b+34);ctx.stroke();} for(let y=pad.t;y<h-pad.b+34;y+=37){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
-  const highs=rows.map(r=>r[2]), lows=rows.map(r=>r[3]); let max=Math.max(...highs), min=Math.min(...lows); const buffer=(max-min||max*.01)*.1; max+=buffer; min-=buffer; const range=max-min||1; chartState.scale={max,min,range,pad,plotW,plotH}; const y=v=>pad.t+(max-v)/range*plotH; const step=plotW/Math.max(rows.length,1); const bodyW=Math.max(2,Math.min(18,step*.52)); const vols=chartState.volumes.slice(view.start, view.start+rows.length); const maxVol=Math.max(...vols,1);
+  const highs=rows.map(r=>r[2]), lows=rows.map(r=>r[3]); let max=Math.max(...highs), min=Math.min(...lows); const buffer=(max-min||max*.01)*.1; max+=buffer; min-=buffer; const range=max-min||1; chartState.scale={max,min,range,pad,plotW,plotH}; const y=v=>pad.t+(max-v)/range*plotH; const step=plotW/Math.max(view.totalSlots,1); const bodyW=Math.max(1,Math.min(18,step*.62)); const vols=chartState.volumes.slice(view.start, view.start+rows.length); const maxVol=Math.max(...vols,1);
   drawChartVolumes(ctx, rows, vols, pad, h, step, maxVol);
   rows.forEach((r,i)=>{const x=pad.l+i*step+step/2; const [t,open,high,low,close]=r; const up=close>=open; const color=up?CHART_UP:CHART_DOWN; ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=1.2; ctx.globalAlpha=1; let top=Math.min(y(open),y(close)); let bh=Math.abs(y(open)-y(close)); if(bh < 3){ top = ((y(open)+y(close))/2)-1.5; bh = 3; } const wickPad=4; const wickTop=Math.min(y(high), top-wickPad); const wickBottom=Math.max(y(low), top+bh+wickPad); ctx.strokeStyle=color; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x,wickTop); ctx.lineTo(x,wickBottom); ctx.stroke(); ctx.fillRect(x-bodyW/2,top,bodyW,bh);});
   if(chartState.indicator){ctx.strokeStyle='#f5b942';ctx.lineWidth=1.3;ctx.beginPath();rows.forEach((r,i)=>{const slice=rows.slice(Math.max(0,i-8),i+1);const avg=slice.reduce((s,v)=>s+v[4],0)/slice.length;const x=pad.l+i*step+step/2, yy=y(avg);i?ctx.lineTo(x,yy):ctx.moveTo(x,yy);});ctx.stroke();}
@@ -399,7 +411,7 @@ function attachDrawing(canvas){
       return;
     }
     chartState.crosshair=normPoint(canvas,e);
-    if(chartState.dragging){const dx=e.clientX-chartState.dragStartX; const view=visibleRows(); const perCandle=(canvas.parentElement.getBoundingClientRect().width-chartState.pad.l-chartState.pad.r)/Math.max(view.rows.length,1); chartState.offset=chartState.dragStartOffset+dx/perCandle; visibleRows(); requestChartDraw(canvas); return;}
+    if(chartState.dragging){const dx=e.clientX-chartState.dragStartX; const view=visibleRows(); const perCandle=(canvas.parentElement.getBoundingClientRect().width-chartState.pad.l-chartState.pad.r)/Math.max(view.totalSlots,1); chartState.offset=chartState.dragStartOffset+dx/perCandle; visibleRows(); requestChartDraw(canvas); return;}
     if(chartState.freehand){chartState.freehand.push(normPoint(canvas,e));requestChartDraw(canvas);}
     else if(chartState.draft){chartState.draft.b=normPoint(canvas,e);requestChartDraw(canvas);}
     else requestChartDraw(canvas);
@@ -470,7 +482,7 @@ function attachDrawing(canvas){
       const p = touchPoint(e.touches[0]);
       const view = visibleRows();
       const rect = canvas.parentElement.getBoundingClientRect();
-      const perCandle = Math.max(1, (rect.width - chartState.pad.l - chartState.pad.r) / Math.max(view.rows.length, 1));
+      const perCandle = Math.max(1, (rect.width - chartState.pad.l - chartState.pad.r) / Math.max(view.totalSlots, 1));
       chartState.offset = touchGesture.offset + (p.x - touchGesture.startX) / perCandle;
       visibleRows();
       chartState.crosshair = normPoint(canvas, { clientX: p.x, clientY: p.y });
@@ -527,7 +539,7 @@ function activeChartChange(){const live=Number(chartState.liveChange24h); if(Num
 function syncCurrentWatchlistPrice(price, change24h){const currentId=$('#candleChart')?.dataset.coin; if(!currentId)return; const tr=$('#watchlistRows tr[data-watch="'+currentId+'"]'); if(!tr)return; const p=Number(price), ch=Number(change24h); if(!Number.isFinite(p)||p<=0)return; const change=Number.isFinite(ch)?ch:activeChartChange(); const cls=change>=0?'pos':'neg'; const move=Number.isFinite(change)?absMove(p,change):0; const priceCell=tr.querySelector('[data-watch-price]'); const varCell=tr.querySelector('[data-watch-var]'); const changeCell=tr.querySelector('[data-watch-change]'); if(priceCell)priceCell.textContent=axisPrice(p); if(varCell){varCell.textContent=signedNumber(move,2); varCell.className=cls;} if(changeCell&&Number.isFinite(change)){changeCell.textContent=pct(change); changeCell.className=cls;} tr.classList.toggle('pos',cls==='pos'); tr.classList.toggle('neg',cls==='neg');}
 async function updateWatchlist(){try{const body=$('#watchlistRows'); if(!body)return; const currentId=$('#candleChart')?.dataset.coin || 'bitcoin'; const featuredIds=[currentId,'ethereum','binancecoin','tether'].filter((id,i,arr)=>id&&arr.indexOf(id)===i); const r=await fetch('/api/ranking'); if(!r.ok)throw new Error('watchlist ranking failed'); const ranking=await r.json(); const allRows=Array.isArray(ranking.usd)?ranking.usd:[]; const rows=featuredIds.map(id=>allRows.find(c=>c.id===id)).filter(Boolean); if(!rows.length)return; const html=rows.map((c,index)=>{const isCurrent=c.id===currentId; const livePrice=isCurrent?activeChartPrice():NaN; const liveChange=isCurrent?activeChartChange():NaN; const rowPrice=Number.isFinite(livePrice)?livePrice:Number(c.current_price||0); const change=Number.isFinite(liveChange)?liveChange:Number(c.price_change_percentage_24h_in_currency||0); const move=absMove(rowPrice,change); const cls=change>=0?'pos':'neg'; return '<tr class="'+(index===0?'active-watch ':'')+cls+'" data-watch="'+c.id+'" data-href="/moeda/'+c.id+'"><td><span class="watch-symbol">'+watchIconHtml(c)+'<span>'+(c.symbol||'').toUpperCase()+'USD</span></span></td><td data-watch-price>'+axisPrice(rowPrice)+'</td><td data-watch-var class="'+cls+'">'+signedNumber(move,2)+'</td><td data-watch-change class="'+cls+'">'+pct(change)+'</td></tr>';}).join('')+'<tr class="watch-more-row"><td colspan="4"><a class="watch-more" href="/watchlist">Ver mais</a></td></tr>'; if(!body.dataset.loaded){body.innerHTML=html; body.dataset.loaded='1'; body.addEventListener('click',e=>{const tr=e.target.closest('tr[data-href]'); if(tr) location.href=tr.dataset.href;}); } else {body.innerHTML=html;} syncCurrentWatchlistPrice(activeChartPrice(),activeChartChange()); }catch(_){}}
   async function updateCoinPrice(){try{const r=await fetch('/api/price?ids='+canvas.dataset.coin+'&currencies=usd,brl&live=1&t='+Date.now());const data=await r.json();const item=data[canvas.dataset.coin];if(!item)return;const price=Number(item.usd),change24h=Number(item.usd_24h_change);applyMasterPrice(price,change24h,canvas);}catch(_){}}
-  async function load(tf='5m'){chartState.tf=tf;chartState.candleStartedAt=Date.now();const label=compactTfLabel(tf);$('#activeTf')&&($('#activeTf').textContent=label);$('#timeframeCurrent')&&($('#timeframeCurrent').textContent=label);$('#chartLoading').style.display='block';$('#chartLoading').textContent='carregando candles...';try{const period=tfToApi[tf]||'24h';const useOfficial = false;const chartRes=await fetch('/api/chart/'+canvas.dataset.coin+'?period='+period+'&currency=usd');if(!chartRes.ok)throw new Error('chart failed');const chart=await chartRes.json();let officialOhlc=[];if(useOfficial){try{const ohlcRes=await fetch('/api/ohlc/'+canvas.dataset.coin+'?period='+period+'&currency=usd');officialOhlc=ohlcRes.ok?await ohlcRes.json():[];}catch(_){}}const built=buildCandlesFromChart(chart, tf, useOfficial ? officialOhlc : []);if(!built.rows.length)throw new Error('empty candles');chartState.rows=built.rows;chartState.volumes=built.volumes;chartState.zoom=DEFAULT_CHART_ZOOM;chartState.offset=0;updateOhlcLabel();drawCandles(canvas);updateCoinPrice();updateWatchlist();$('#chartLoading').style.display='none';}catch(e){$('#chartLoading').textContent='Nao foi possivel carregar candles agora. Aguarde alguns segundos.';}}
+  async function load(tf='5m'){chartState.tf=tf;chartState.candleStartedAt=Date.now();const label=compactTfLabel(tf);$('#activeTf')&&($('#activeTf').textContent=label);$('#timeframeCurrent')&&($('#timeframeCurrent').textContent=label);$('#chartLoading').style.display='block';$('#chartLoading').textContent='carregando candles...';try{const period=tfToApi[tf]||'24h';const useOfficial = false;const chartRes=await fetch('/api/chart/'+canvas.dataset.coin+'?period='+period+'&currency=usd');if(!chartRes.ok)throw new Error('chart failed');const chart=await chartRes.json();let officialOhlc=[];if(useOfficial){try{const ohlcRes=await fetch('/api/ohlc/'+canvas.dataset.coin+'?period='+period+'&currency=usd');officialOhlc=ohlcRes.ok?await ohlcRes.json():[];}catch(_){}}const built=buildCandlesFromChart(chart, tf, useOfficial ? officialOhlc : []);if(!built.rows.length)throw new Error('empty candles');chartState.rows=built.rows;chartState.volumes=built.volumes;chartState.zoom=DEFAULT_CHART_ZOOM;chartState.offset=0;chartState.rightOffset=38;updateOhlcLabel();drawCandles(canvas);updateCoinPrice();updateWatchlist();$('#chartLoading').style.display='none';}catch(e){$('#chartLoading').textContent='Nao foi possivel carregar candles agora. Aguarde alguns segundos.';}}
   $('#timeframeMenuToggle')?.addEventListener('click',e=>{e.stopPropagation();$('#timeframeMenu')?.classList.toggle('open');});
   $$('#timeframeMenu button[data-period]').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();$$('#timeframeMenu button[data-period]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');$('#timeframeMenu')?.classList.remove('open');load(btn.dataset.period);}));
   document.addEventListener('click',e=>{if(!e.target.closest('.timeframe-menu-wrap'))$('#timeframeMenu')?.classList.remove('open');});
