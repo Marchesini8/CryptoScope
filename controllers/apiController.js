@@ -88,6 +88,11 @@ async function pricesWithBinance(ids, currencies) {
   return { ...fallback, ...live };
 }
 
+async function livePricesWithBinance(ids, currencies) {
+  const live = await binance.simplePrices(ids, currencies).catch(() => ({}));
+  return live && typeof live === 'object' ? live : {};
+}
+
 function hashText(text) {
   return String(text || 'coin').split('').reduce((sum, char) => ((sum * 31) + char.charCodeAt(0)) >>> 0, 7);
 }
@@ -278,14 +283,16 @@ exports.ohlc = async (req, res) => {
 exports.price = async (req, res) => {
   const ids = req.query.ids || 'bitcoin';
   const currencies = req.query.currencies || 'usd,brl';
-  if (preferBinance()) return res.json(await pricesWithBinance(ids, currencies));
+  const fallback = fallbackPrices(ids, currencies);
+  const binanceLive = await livePricesWithBinance(ids, currencies);
+  if (preferBinance()) return res.json(Object.keys(binanceLive).length ? { ...fallback, ...binanceLive } : fallback);
+  if (req.query.live === '1' && Object.keys(binanceLive).length) return res.json({ ...fallback, ...binanceLive });
   try {
     const data = await coin.simplePrice(ids, currencies, { live: req.query.live === '1' });
-    const fallback = await pricesWithBinance(ids, currencies);
-    res.json(data && typeof data === 'object' && Object.keys(data).length ? { ...fallback, ...data } : fallback);
+    res.json(data && typeof data === 'object' && Object.keys(data).length ? { ...fallback, ...binanceLive, ...data } : { ...fallback, ...binanceLive });
   } catch (error) {
     logFallback('Price API fallback', error);
-    res.json(await pricesWithBinance(ids, currencies));
+    res.json(Object.keys(binanceLive).length ? { ...fallback, ...binanceLive } : fallback);
   }
 };
 

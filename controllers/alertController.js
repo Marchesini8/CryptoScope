@@ -1,3 +1,3 @@
 const PriceAlert = require('../models/PriceAlert');
-exports.index = async (req, res) => res.render('pages/alerts', { title: 'Alertas de preco - CryptoRadar', description: 'Prepare alertas de alta ou queda de preco.', alerts: await PriceAlert.list(req.user.id) });
+exports.index = async (req, res) => res.render('pages/alerts', { title: 'Alertas de preco - CryptoScope', description: 'Prepare alertas de alta ou queda de preco.', alerts: await PriceAlert.list(req.user.id) });
 exports.create = async (req, res) => { await PriceAlert.create(req.user.id, { coinId: req.body.coinId, coinName: req.body.coinName, symbol: req.body.symbol, targetPrice: Number(req.body.targetPrice), currency: req.body.currency, direction: req.body.direction }); res.redirect('/alertas'); };

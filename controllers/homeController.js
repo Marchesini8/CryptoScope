@@ -142,7 +142,7 @@ exports.home = async (req, res) => {
     logFallback('Home ranking fallback', error);
     ranking = await fallbackRankingLive();
   }
-  res.render('pages/home', { title: 'CryptoRadar - Ranking de criptomoedas', description: 'Ranking das 100 maiores criptomoedas com precos em tempo real.', ranking, fmt });
+  res.render('pages/home', { title: 'CryptoScope - Ranking de criptomoedas', description: 'Ranking das 100 maiores criptomoedas com precos em tempo real.', ranking, fmt });
 };
 
 exports.coinPage = async (req, res) => {
@@ -154,7 +154,7 @@ exports.coinPage = async (req, res) => {
     logFallback('Coin page fallback', error);
     data = await enrichCoinWithBinance(fallbackCoin(id));
   }
-  res.render('pages/coin', { title: data.name + ' (' + data.symbol.toUpperCase() + ') - CryptoRadar', description: 'Preco, grafico, market cap e dados de ' + data.name + '.', coin: data, fmt });
+  res.render('pages/coin', { title: data.name + ' (' + data.symbol.toUpperCase() + ') - CryptoScope', description: 'Preco, grafico, market cap e dados de ' + data.name + '.', coin: data, fmt });
 };
 
 exports.aliasCoin = (id) => async (req, res) => res.redirect('/moeda/' + id);

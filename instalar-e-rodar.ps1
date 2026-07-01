@@ -1,5 +1,5 @@
 Set-Location -LiteralPath $PSScriptRoot
-Write-Host "Iniciando CryptoRadar..."
+Write-Host "Iniciando CryptoScope..."
 if (-not (Test-Path "node_modules")) {
   Write-Host "Instalando dependencias. Isso pode levar alguns minutos..."
   npm install

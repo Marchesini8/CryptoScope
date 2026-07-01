@@ -1,6 +1,6 @@
-# CryptoRadar
+# CryptoScope
 
-CryptoRadar e uma plataforma web em Node.js, JavaScript puro, Express, EJS e MySQL para acompanhar criptomoedas, graficos, carteira, favoritos, alertas, calculadoras, conversor, noticias e chatbot educativo.
+CryptoScope e uma plataforma web em Node.js, JavaScript puro, Express, EJS e MySQL para acompanhar criptomoedas, graficos, carteira, favoritos, alertas, calculadoras, conversor, noticias e chatbot educativo.
 
 ## Recursos
 
@@ -60,7 +60,7 @@ A arquitetura MVC separa rotas, controladores, modelos e servicos. Para evoluir,
 
 ## Aviso
 
-O CryptoRadar e educativo. Isto nao e recomendacao financeira.
+O CryptoScope e educativo. Isto nao e recomendacao financeira.
 
 ## Deploy no Railway
 

@@ -4,7 +4,7 @@ function ensureDependencies() {
     try { require.resolve(name); return false; } catch (_) { return true; }
   });
   if (missing.length) {
-    console.error('CryptoRadar ainda nao tem as dependencias instaladas.');
+    console.error('CryptoScope ainda nao tem as dependencias instaladas.');
     console.error('Rode primeiro: npm install');
     console.error('Depois rode novamente: node server.js');
     console.error('Pacotes faltando: ' + missing.join(', '));

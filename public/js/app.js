@@ -122,7 +122,9 @@ const tfVisible = { '1t':110,'10t':110,'100t':110,'1000t':110,'1s':110,'5s':110,
 const CHART_UP = '#089981';
 const CHART_DOWN = '#f23645';
 const DEFAULT_CHART_ZOOM = 2.35;
-const chartState = { rows: [], volumes: [], drawings: [], currentTool: 'cursor', draft: null, freehand: null, indicator: false, tf: '5m', pad: { l: 48, r: 74, t: 24, b: 78 }, scale: null, zoom: 2.35, offset: 0, dragging: false, dragStartX: 0, dragStartOffset: 0, crosshair: null, candleStartedAt: Date.now(), raf: 0 };
+const MIN_CHART_ZOOM = 0.055;
+const MAX_CHART_ZOOM = 42;
+const chartState = { rows: [], volumes: [], drawings: [], currentTool: 'cursor', draft: null, freehand: null, indicator: false, tf: '5m', pad: { l: 48, r: 74, t: 24, b: 78 }, scale: null, zoom: 2.35, offset: 0, dragging: false, dragStartX: 0, dragStartOffset: 0, crosshair: null, candleStartedAt: Date.now(), raf: 0, changeBase24h: null };
 
 
 function buildCandlesFromChart(chart, tf, officialOhlc = []){
@@ -184,8 +186,9 @@ function buildCandlesFromChart(chart, tf, officialOhlc = []){
   candles = candles.slice(-limit);
   return { rows: candles.map(c => c.slice(0,5)), volumes: candles.map(c => c[5] || 1) };
 }
-function visibleRows(){ const rows = chartState.rows; const target = tfVisible[chartState.tf] || 100; const wanted = Math.max(24, Math.floor(target / chartState.zoom * 2.15)); const count = rows.length > 80 ? Math.min(rows.length - 12, wanted) : Math.min(rows.length, wanted); const maxOffset = Math.max(0, rows.length - count); chartState.offset = Math.max(0, Math.min(maxOffset, chartState.offset)); const start = Math.max(0, rows.length - count - Math.floor(chartState.offset)); return { rows: rows.slice(start, start + count), start }; }
+function visibleRows(){ const rows = chartState.rows; const target = tfVisible[chartState.tf] || 100; const wanted = Math.max(12, Math.floor(target / chartState.zoom * 2.15)); const count = Math.min(rows.length, wanted); const maxOffset = Math.max(0, rows.length - count); chartState.offset = Math.max(0, Math.min(maxOffset, chartState.offset)); const start = Math.max(0, rows.length - count - Math.floor(chartState.offset)); return { rows: rows.slice(start, start + count), start }; }
 function requestChartDraw(canvas){ cancelAnimationFrame(chartState.raf); chartState.raf = requestAnimationFrame(() => drawCandles(canvas)); }
+function normalizeWheelDelta(deltaY){ return Math.max(-900, Math.min(900, Number(deltaY) || 0)); }
 function setChartZoom(canvas, nextZoom, centerX){
   const rows = chartState.rows;
   if(!rows.length) return;
@@ -195,7 +198,7 @@ function setChartZoom(canvas, nextZoom, centerX){
   const x = Number.isFinite(centerX) ? centerX : chartState.pad.l + plotW * .5;
   const ratio = Math.max(0, Math.min(1, (x - chartState.pad.l) / plotW));
   const anchor = before.start + ratio * Math.max(before.rows.length - 1, 1);
-  chartState.zoom = Math.max(.75, Math.min(10, nextZoom));
+  chartState.zoom = Math.max(MIN_CHART_ZOOM, Math.min(MAX_CHART_ZOOM, nextZoom));
   const afterCount = visibleRows().rows.length;
   const wantedStart = anchor - ratio * Math.max(afterCount - 1, 1);
   chartState.offset = rows.length - afterCount - wantedStart;
@@ -269,7 +272,7 @@ function drawCandles(canvas){ const all = chartState.rows; if(!all.length) retur
   ctx.fillStyle='#9aa4b2';ctx.font='11px Segoe UI, Arial';for(let i=0;i<8;i++){const val=max-i*range/7, yy=y(val);ctx.fillText(axisPrice(val),w-pad.r+10,yy+4);} drawChartTimeAxis(ctx, rows, pad, w, h, step, view.start); const last=all.at(-1); if(last){const yy=y(last[4]); const up=last[4]>=last[1]; ctx.strokeStyle=up?CHART_UP:CHART_DOWN;ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(0,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=ctx.strokeStyle;ctx.fillRect(w-pad.r+6,yy-18,62,36);ctx.fillStyle='#fff';ctx.font='700 11px Segoe UI, Arial';ctx.fillText(axisPrice(last[4]),w-pad.r+11,yy-4);ctx.font='10px Segoe UI, Arial';ctx.fillText(candleCountdown(),w-pad.r+11,yy+10); }
   drawStoredDrawings(ctx,w,h); drawCrosshair(ctx,w,h); }
 function candleCountdown(){ const seconds=tfSeconds[chartState.tf]||300; const elapsed=Math.floor((Date.now()-chartState.candleStartedAt)/1000)%seconds; const remain=Math.max(0,seconds-elapsed); const hh=Math.floor(remain/3600), mm=Math.floor((remain%3600)/60), ss=remain%60; return hh>0 ? String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0') : String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0'); }
-function updateTabTitle(price, change24h){ const symbol = ($('#coinSwitcherSearch')?.value || 'CRYPTO').trim(); const change = Number(change24h || 0); const arrow = change >= 0 ? '▲' : '▼'; const signed = (change >= 0 ? '+' : '-') + Math.abs(change).toFixed(2) + '%'; const display = Number(price || 0).toLocaleString('pt-BR', { maximumFractionDigits: Number(price) >= 1000 ? 0 : 4 }); document.title = symbol + ' ' + display + ' ' + arrow + ' ' + signed; }
+function updateTabTitle(price, change24h){ const symbol = ($('#coinSwitcherSearch')?.value || 'CRYPTO').trim(); const change = Number(change24h || 0); const arrow = change >= 0 ? '▲' : '▼'; const signed = (change >= 0 ? '+' : '-') + Math.abs(change).toFixed(2) + '%'; const display = Number(price || 0).toLocaleString('pt-BR', { maximumFractionDigits: Number(price) >= 1000 ? 0 : 4 }); document.title = symbol + ' ' + display + ' ' + arrow + ' ' + signed + ' - CryptoScope'; }
 function updateOhlcLabel(){const last=chartState.rows.at(-1); if(!last||!$('#ohlcText'))return; const diff=last[4]-last[1]; $('#ohlcText').textContent='Abr '+last[1].toFixed(3)+' Max '+last[2].toFixed(3)+' Min '+last[3].toFixed(3)+' Fch '+last[4].toFixed(3)+' '+(diff>=0?'+':'')+diff.toFixed(3); $('#ohlcText').className=diff>=0?'pos':'neg'; }
 function updateLiveChange(change24h, price){
   const change = Number(change24h);
@@ -285,8 +288,10 @@ function updateLiveChange(change24h, price){
   const abs = $('#assetAbsChange');
   const current = Number(price || 0);
   if(abs && Number.isFinite(current)){
-    const raw = change ? current * change / (100 + change) : 0;
-    abs.textContent = (raw >= 0 ? '+' : '-') + Math.round(Math.abs(raw)).toLocaleString('en-US') + '$';
+    const previous = change <= -99.999 ? NaN : current / (1 + change / 100);
+    const raw = Number.isFinite(previous) ? current - previous : 0;
+    const digits = Math.abs(raw) >= 100 ? 0 : (Math.abs(raw) >= 1 ? 2 : 6);
+    abs.textContent = (raw >= 0 ? '+' : '-') + Math.abs(raw).toLocaleString('en-US', { maximumFractionDigits: digits }) + '$';
     abs.classList.toggle('pos', positive);
     abs.classList.toggle('neg', !positive);
   }
@@ -296,7 +301,11 @@ function applyMasterPrice(price, change24h, canvas){
   if(!Number.isFinite(p) || p <= 0) return;
   const change = Number(change24h);
   chartState.livePrice = p;
-  if(Number.isFinite(change)) chartState.liveChange24h = change;
+  if(Number.isFinite(change)){
+    chartState.liveChange24h = change;
+    const base = change <= -99.999 ? NaN : p / (1 + change / 100);
+    if(Number.isFinite(base) && base > 0) chartState.changeBase24h = base;
+  }
   const last = chartState.rows.at(-1);
   let chartChanged = false;
   if(last){
@@ -312,7 +321,9 @@ function applyMasterPrice(price, change24h, canvas){
   const display = axisPrice(p);
   if($('#livePrice')) $('#livePrice').textContent = '$' + display;
   $$('.asset-price').forEach(el => el.textContent = display);
-  const cleanChange = Number.isFinite(change) ? change : activeChartChange();
+  const base24h = Number(chartState.changeBase24h);
+  const cleanChange = Number.isFinite(base24h) && base24h > 0 ? ((p - base24h) / base24h) * 100 : (Number.isFinite(change) ? change : activeChartChange());
+  if(Number.isFinite(cleanChange)) chartState.liveChange24h = cleanChange;
   updateLiveChange(cleanChange, p);
   updateTabTitle(p, cleanChange);
   if(chartChanged) updateOhlcLabel();
@@ -356,7 +367,7 @@ function attachDrawing(canvas){
     if(e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)){
       panChart(canvas, e.deltaX || e.deltaY);
     } else {
-      const zoomFactor = Math.exp(-e.deltaY * 0.0018);
+      const zoomFactor = Math.exp(-normalizeWheelDelta(e.deltaY) * 0.0028);
       setChartZoom(canvas, chartState.zoom * zoomFactor, centerX);
     }
     requestChartDraw(canvas);
@@ -479,6 +490,33 @@ function attachDrawing(canvas){
   };
   canvas.addEventListener('touchend', finishTouch, { passive: false });
   canvas.addEventListener('touchcancel', finishTouch, { passive: false });
+  const timeAxis = $('.bottom-time-axis');
+  if(timeAxis){
+    let axisDrag = null;
+    timeAxis.addEventListener('wheel', e => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const centerX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+      setChartZoom(canvas, chartState.zoom * Math.exp(-normalizeWheelDelta(e.deltaY) * 0.0028), centerX);
+      requestChartDraw(canvas);
+    }, { passive: false });
+    timeAxis.addEventListener('pointerdown', e => {
+      axisDrag = { x: e.clientX, zoom: chartState.zoom };
+      try { timeAxis.setPointerCapture(e.pointerId); } catch(_) {}
+    });
+    timeAxis.addEventListener('pointermove', e => {
+      if(!axisDrag) return;
+      const factor = Math.exp((e.clientX - axisDrag.x) * 0.012);
+      setChartZoom(canvas, axisDrag.zoom * factor, canvas.getBoundingClientRect().width * .88);
+      requestChartDraw(canvas);
+    });
+    const finishAxisDrag = e => {
+      axisDrag = null;
+      try { timeAxis.releasePointerCapture(e.pointerId); } catch(_) {}
+    };
+    timeAxis.addEventListener('pointerup', finishAxisDrag);
+    timeAxis.addEventListener('pointercancel', finishAxisDrag);
+  }
 }
 async function initCandles(){ const canvas=$('#candleChart'); if(!canvas)return; attachDrawing(canvas);  $('#indicatorToggle')?.addEventListener('click',()=>{chartState.indicator=!chartState.indicator;$('#indicatorToggle').classList.toggle('active',chartState.indicator);drawCandles(canvas);}); setInterval(()=>{if($('#clockNow'))$('#clockNow').textContent=new Date().toLocaleTimeString()+' UTC-3'; if(chartState.rows.length) drawCandles(canvas);},1000);
   function watchIconHtml(c){const image=coinImageUrl(c);const src=image?'<img src="'+image+'" alt="">':'';const fallback=(c.symbol||'?').slice(0,1).toUpperCase();return '<span class="watch-icon">'+(src||fallback)+'</span>'; }
@@ -494,7 +532,7 @@ async function updateWatchlist(){try{const body=$('#watchlistRows'); if(!body)re
   $$('#timeframeMenu button[data-period]').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();$$('#timeframeMenu button[data-period]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');$('#timeframeMenu')?.classList.remove('open');load(btn.dataset.period);}));
   document.addEventListener('click',e=>{if(!e.target.closest('.timeframe-menu-wrap'))$('#timeframeMenu')?.classList.remove('open');});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#timeframeMenu')?.classList.remove('open');});
-  window.addEventListener('resize',()=>chartState.rows.length&&drawCandles(canvas)); load('5m'); setInterval(()=>load(chartState.tf),120000); setInterval(updateCoinPrice,5000); setInterval(updateWatchlist,5000); }
+  window.addEventListener('resize',()=>chartState.rows.length&&drawCandles(canvas)); load('5m'); setInterval(()=>load(chartState.tf),120000); setInterval(updateCoinPrice,2000); setInterval(updateWatchlist,5000); }
 function initAverage(){const wrap=$('#avgRows'), add=$('#addAvg'), out=$('#avgResult'); if(!wrap)return; function row(){const d=document.createElement('div');d.className='calc-row';d.innerHTML='<input type="number" step="any" placeholder="Valor investido"><input type="number" step="any" placeholder="Preco da moeda"><input type="number" step="any" placeholder="Quantidade">';wrap.appendChild(d);d.addEventListener('input',calc)} function calc(){let invested=0,qty=0; $$('.calc-row',wrap).forEach(r=>{const v=$$('input',r).map(i=>Number(i.value||0)); invested+=v[0]; qty+=v[2]|| (v[1]?v[0]/v[1]:0)}); const avg=qty?invested/qty:0; out.textContent='Investido: R$ '+invested.toFixed(2)+' | Quantidade: '+qty.toFixed(8)+' | Preco medio: R$ '+avg.toFixed(2);} add?.addEventListener('click',row); row();}
 function initProfit(){const ids=['#profitQty','#entryPrice','#targetPrice']; if(!$(ids[0]))return; function calc(){const q=Number($(ids[0]).value||0),e=Number($(ids[1]).value||0),t=Number($(ids[2]).value||0); const final=q*t, profit=q*(t-e), pctv=e?((t-e)/e)*100:0; $('#profitResult').textContent='Resultado: R$ '+profit.toFixed(2)+' ('+pctv.toFixed(2)+'%) | Valor final: R$ '+final.toFixed(2);} ids.forEach(id=>$(id).addEventListener('input',calc)); calc();}
 async function initConverter(){if(!$('#convAmount'))return; async function calc(){const pair=$('#convPair').value, amount=Number($('#convAmount').value||0); const r=await fetch('/api/price?ids=bitcoin,ethereum&currencies=usd,brl'); const p=await r.json(); let val=0,label=''; if(pair==='BTC_BRL'){val=amount*p.bitcoin.brl;label='BRL'} if(pair==='BTC_USD'){val=amount*p.bitcoin.usd;label='USD'} if(pair==='ETH_BRL'){val=amount*p.ethereum.brl;label='BRL'} if(pair==='BRL_BTC'){val=amount/p.bitcoin.brl;label='BTC'} if(pair==='USD_BTC'){val=amount/p.bitcoin.usd;label='BTC'} $('#convResult').textContent=val.toLocaleString('pt-BR',{maximumFractionDigits:8})+' '+label;} $('#convAmount').addEventListener('input',calc); $('#convPair').addEventListener('change',calc); calc();}

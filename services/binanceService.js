@@ -2,8 +2,27 @@ const axios = require('axios');
 const cache = require('../utils/cache');
 
 const baseURL = process.env.BINANCE_BASE_URL || 'https://api.binance.com/api/v3';
-const api = axios.create({ baseURL, timeout: 8000 });
+const baseURLs = [
+  baseURL,
+  'https://api1.binance.com/api/v3',
+  'https://api2.binance.com/api/v3',
+  'https://api3.binance.com/api/v3',
+  'https://api4.binance.com/api/v3',
+  'https://data-api.binance.vision/api/v3'
+].filter((url, index, arr) => url && arr.indexOf(url) === index);
 const brlRate = Number(process.env.USD_BRL_FALLBACK || 5.55);
+
+async function get(path, config = {}) {
+  let lastError;
+  for (const url of baseURLs) {
+    try {
+      return await axios.get(url + path, { ...config, timeout: Number(process.env.BINANCE_TIMEOUT_MS || 8000) });
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+}
 
 const catalog = [
   ['bitcoin','Bitcoin','btc','BTCUSDT',19800000],
@@ -125,8 +144,8 @@ function rowFromTicker(meta, tick, currency = 'usd') {
 async function ticker(id) {
   const pair = symbolFor(id);
   if (!pair) return null;
-  return cache.remember('binance:ticker:' + pair, 5000, async () => {
-    const { data } = await api.get('/ticker/24hr', { params: { symbol: pair } });
+  return cache.remember('binance:ticker:' + pair, 1000, async () => {
+    const { data } = await get('/ticker/24hr', { params: { symbol: pair } });
     const meta = byId.get(String(id).toLowerCase()) || { id, symbol: pair.replace('USDT', '').toLowerCase(), pair };
     const row = rowFromTicker(meta, data, 'usd');
     if (!row) return null;
@@ -157,8 +176,8 @@ async function simplePrices(ids, currencies = 'usd,brl') {
 }
 
 async function tickers() {
-  return cache.remember('binance:tickers:24hr', 5000, async () => {
-    const { data } = await api.get('/ticker/24hr');
+  return cache.remember('binance:tickers:24hr', 3000, async () => {
+    const { data } = await get('/ticker/24hr');
     return Array.isArray(data) ? data : [];
   });
 }
@@ -217,7 +236,7 @@ async function chart(id, days = 1) {
   if (!interval) return null;
   const limit = Math.min(1000, Math.max(120, numericDays <= 1 ? 720 : numericDays * 24));
   return cache.remember('binance:chart:' + symbol + ':' + interval + ':' + limit, 10000, async () => {
-    const { data } = await api.get('/klines', { params: { symbol, interval, limit } });
+    const { data } = await get('/klines', { params: { symbol, interval, limit } });
     if (!Array.isArray(data) || data.length < 2) return null;
     return {
       prices: data.map(k => [Number(k[0]), Number(k[4])]),
