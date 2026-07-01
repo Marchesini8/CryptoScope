@@ -69,6 +69,11 @@
     </div>
     <aside class="trade-sidebar" id="tradeSidebar"><button class="watchlist-resizer" id="watchlistResizer" title="Redimensionar watchlist"></button>
       <section class="watchlist-panel"><div class="watchlist-head"><b>Watchlist</b><span>v</span><em>+ grid more</em></div><table><thead><tr><th>Simbolo</th><th>Preco</th><th>Var</th><th>Var%</th></tr></thead><tbody id="watchlistRows"><tr><td colspan="4" class="watchlist-loading">carregando ativos...</td></tr></tbody></table></section>
+      <section class="watch-fear-card" data-watch-fear style="--value:50">
+        <div class="watch-fear-top"><span>Fear & Greed</span><b data-watch-fear-score>--</b></div>
+        <div class="watch-fear-bar"><i></i></div>
+        <p><span data-watch-fear-label>carregando...</span><small data-watch-fear-time></small></p>
+      </section>
 
       <section class="selected-asset-card <%= selectedMoveClass %>" id="selectedAssetCard" data-current-price="<%= selectedPrice %>">
         <div class="selected-card-top">

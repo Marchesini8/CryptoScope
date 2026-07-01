@@ -390,3 +390,16 @@ body,.cmc-table th,.cmc-table td,.market-table th,.market-table td,.watchlist-pa
   .cmc-table .coin-cell{grid-template-columns:36px minmax(0,1fr)!important}
   .cmc-table .coin-cell img,.cmc-table .coin-logo-badge{width:36px!important;height:36px!important}
 }
+.watch-fear-card{--value:50;background:#111!important;border-bottom:1px solid #292929!important;padding:10px 8px 12px!important;margin:0 0 8px!important;color:#d1d4dc!important}
+.watch-fear-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.watch-fear-top span{font-size:13px;font-weight:700;color:#fff}
+.watch-fear-top b{font-size:22px;font-weight:750;line-height:1;color:#f3f3f3;font-variant-numeric:tabular-nums}
+.watch-fear-bar{position:relative;height:7px;border-radius:999px;background:linear-gradient(90deg,#ff3b4f 0%,#ff9f1c 35%,#d6c44d 52%,#00bfa5 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.watch-fear-bar i{position:absolute;top:50%;left:calc(var(--value) * 1%);width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #111;transform:translate(-50%,-50%);box-shadow:0 0 0 1px rgba(255,255,255,.32),0 4px 12px rgba(0,0,0,.45)}
+.watch-fear-card p{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0 0;font-size:12px;line-height:1.2}
+.watch-fear-card p span{font-weight:700;color:#dfe5f2}
+.watch-fear-card p small{font-size:11px;color:#8e96a8;white-space:nowrap}
+.watch-fear-card[data-zone="fear"] .watch-fear-top b,.watch-fear-card[data-zone="fear"] p span{color:#ff3b4f}
+.watch-fear-card[data-zone="neutral"] .watch-fear-top b,.watch-fear-card[data-zone="neutral"] p span{color:#d6c44d}
+.watch-fear-card[data-zone="greed"] .watch-fear-top b,.watch-fear-card[data-zone="greed"] p span{color:#00bfa5}
+@media(max-width:900px){.watch-fear-card{padding:10px 8px!important}.watch-fear-top b{font-size:20px}.watch-fear-card p{font-size:12px}}
